@@ -1,0 +1,43 @@
+# ============================================================================
+# CONFIGURACION PERSONAL - plantilla
+#
+# COMO USARLO
+#   1. Copia este archivo y llamalo  application-local.properties
+#      (sin el .ejemplo al final), aqui mismo en la raiz del proyecto.
+#   2. Descomenta y cambia solo las lineas que necesites.
+#   3. Listo. La aplicacion lo toma sola al arrancar.
+#
+# Tu archivo application-local.properties esta en .gitignore: no se comparte
+# con el equipo y nadie va a pisar tu configuracion ni tu vas a pisar la suya.
+#
+# Este archivo .ejemplo SI se comparte, porque es la plantilla. No pongas
+# claves reales aqui.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Si tu usuario root de MySQL tiene contrasena
+# ----------------------------------------------------------------------------
+#spring.datasource.username=root
+#spring.datasource.password=tu_clave_aqui
+
+# ----------------------------------------------------------------------------
+# Si tu MySQL corre en otro puerto, o le pusiste otro nombre a la base
+# ----------------------------------------------------------------------------
+#spring.datasource.url=jdbc:mysql://localhost:3307/bodegadb?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
+
+# ----------------------------------------------------------------------------
+# Si el puerto 8080 te lo ocupa otro programa
+# ----------------------------------------------------------------------------
+#server.port=8081
+
+# ----------------------------------------------------------------------------
+# Para ver menos ruido de Hibernate en la consola mientras trabajas
+# ----------------------------------------------------------------------------
+#spring.jpa.show-sql=false
+
+# ----------------------------------------------------------------------------
+# Para ver los valores que viajan en cada consulta SQL.
+# Util cuando algo no guarda y no se entiende por que.
+# ----------------------------------------------------------------------------
+#logging.level.org.hibernate.SQL=DEBUG
+#logging.level.org.hibernate.orm.jdbc.bind=TRACE

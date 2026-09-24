@@ -1,0 +1,20 @@
+# Normaliza los saltos de linea para que no haya diffs falsos.
+# Sin esto, un archivo guardado en Windows aparece como "cambiado por completo"
+# para quien lo abra en otro editor, aunque nadie haya tocado una linea.
+
+* text=auto eol=lf
+
+# Archivos que SI deben quedar con saltos de Windows:
+# PowerShell puede fallar al ejecutarlos si tienen saltos de Unix.
+*.ps1  text eol=crlf
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+
+# Binarios: que Git no intente convertirlos.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.jar  binary
+*.pdf  binary

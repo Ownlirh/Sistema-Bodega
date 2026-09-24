@@ -1,0 +1,25 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+bin/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Configuracion local con claves reales
+application-local.properties
+
+# Configuracion personal de cada integrante: NO se comparte.
+# La plantilla application-local.properties.ejemplo si se comparte.

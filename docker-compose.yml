@@ -1,0 +1,44 @@
+# ============================================================================
+# ALTERNATIVA a instalar MySQL en tu PC.
+#
+# Levanta MySQL 8 en un contenedor, con la base ya creada y los datos de
+# prueba cargados. Util si a alguien del equipo le complica el instalador
+# de MySQL, o si quiere borrar todo y empezar de cero sin desinstalar nada.
+#
+# Necesita Docker Desktop:   winget install --id Docker.DockerDesktop -e
+#
+#   Levantar:   docker compose up -d
+#   Ver logs:   docker compose logs -f mysql
+#   Apagar:     docker compose down
+#   Borrar todo y empezar de cero:   docker compose down -v
+#
+# El script de db/ se ejecuta SOLO la primera vez, cuando el volumen esta
+# vacio. Si cambias el script, hay que correr "docker compose down -v"
+# para que se vuelva a aplicar.
+#
+# La clave queda en 'root' / 'root', que es la que espera
+# application.properties por defecto. Es solo para desarrollo local.
+# ============================================================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: bodega-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bodegadb
+    ports:
+      - "3306:3306"
+    volumes:
+      - bodega-datos:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bodega-datos:

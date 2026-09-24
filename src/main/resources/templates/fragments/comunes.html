@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  ============================================================================
+  FRAGMENTOS COMUNES - la base visual de todo el sistema.
+
+  Toda pantalla nueva empieza copiando la estructura de
+  templates/demo/productos.html, que usa estos tres fragmentos:
+
+      <head th:replace="~{fragments/comunes :: cabecera('Titulo')}"></head>
+      <div  th:replace="~{fragments/comunes :: navbar}"></div>
+      <div  th:replace="~{fragments/comunes :: pie}"></div>
+
+  Asi las pantallas de los integrantes 3, 5 y 6 salen todas iguales sin
+  ponerse de acuerdo en nada.
+
+  Si agregan un modulo, sumen su enlace al navbar de abajo.
+  ============================================================================
+-->
+
+<!-- CABECERA: recibe el titulo de la pagina -->
+<head th:fragment="cabecera(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' | Sistema de Bodegas'">Sistema de Bodegas</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+
+<body>
+
+<!-- NAVBAR: el menu principal -->
+<div th:fragment="navbar">
+    <header class="navbar">
+        <a class="marca" th:href="@{/}">Sistema de Bodegas</a>
+        <nav>
+            <a th:href="@{/}">Inicio</a>
+            <!-- Integrante 5: mantenimientos y consultas -->
+            <a th:href="@{/productos}">Productos</a>
+            <a th:href="@{/empleados}">Empleados</a>
+            <a th:href="@{/proveedores}">Proveedores</a>
+            <a th:href="@{/consultas/ventas}">Ventas</a>
+            <a th:href="@{/consultas/stock}">Stock</a>
+            <!-- Integrante 4: caso transaccional -->
+            <a th:href="@{/venta/nueva}">Nueva venta</a>
+            <!-- Integrante 6: reportes y panel -->
+            <a th:href="@{/panel}">Panel</a>
+            <a th:href="@{/reportes}">Reportes</a>
+        </nav>
+        <!--
+          Integrante 3: cuando montes Spring Security, reemplaza este texto fijo
+          por el usuario real. Con thymeleaf-extras-springsecurity6 seria:
+              <span sec:authentication="name"></span>
+          y los enlaces del navbar se esconden por rol con:
+              <a sec:authorize="hasRole('ADMINISTRADOR')" ...>
+        -->
+        <span class="usuario">Sin sesion</span>
+    </header>
+</div>
+
+<!-- PIE -->
+<div th:fragment="pie">
+    <footer class="pie">
+        Lenguaje de Programacion II &middot; Cibertec 2026
+    </footer>
+</div>
+
+</body>
+</html>

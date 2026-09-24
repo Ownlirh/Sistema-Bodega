@@ -1,0 +1,193 @@
+/* ===========================================================================
+   Estilos base del sistema.
+   Sin Bootstrap ni CDN a proposito: todo viaja dentro del proyecto, asi
+   funciona sin internet y no depende de que un CDN responda en Azure.
+   Si necesitan un componente que no esta aqui, agreguenlo abajo en
+   "COMPLEMENTOS" para no romper lo de arriba.
+   =========================================================================== */
+
+:root {
+    --color-fondo:     #f4f6f8;
+    --color-panel:     #ffffff;
+    --color-borde:     #dfe3e8;
+    --color-texto:     #1f2933;
+    --color-suave:     #6b7480;
+    --color-principal: #1f6feb;
+    --color-oscuro:    #17375e;
+    --color-ok:        #1a7f4b;
+    --color-alerta:    #b54708;
+    --color-error:     #b42318;
+    --radio:           6px;
+    --sombra:          0 1px 3px rgba(16, 24, 40, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+/* --------------------------------------------------------------- Navbar --- */
+.navbar {
+    background: var(--color-oscuro);
+    color: #fff;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    height: 56px;
+    box-shadow: var(--sombra);
+}
+
+.navbar .marca {
+    font-weight: 600;
+    font-size: 17px;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.navbar nav { display: flex; gap: 20px; flex: 1; }
+
+.navbar nav a {
+    color: #c9d6e6;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+}
+
+.navbar nav a:hover { color: #fff; border-bottom-color: var(--color-principal); }
+
+.navbar .usuario { font-size: 13px; color: #a7b8cc; white-space: nowrap; }
+
+/* ------------------------------------------------------------ Contenido --- */
+.contenedor { max-width: 1140px; margin: 0 auto; padding: 24px; }
+
+h1 { font-size: 24px; margin: 0 0 4px; }
+h2 { font-size: 19px; margin: 28px 0 12px; }
+
+.subtitulo { color: var(--color-suave); margin: 0 0 24px; font-size: 14px; }
+
+.panel {
+    background: var(--color-panel);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--sombra);
+}
+
+/* --------------------------------------------------------------- Tablas --- */
+table.datos { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+table.datos th {
+    text-align: left;
+    background: #eef1f5;
+    color: #445;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-borde);
+    white-space: nowrap;
+}
+
+table.datos td { padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
+table.datos tr:hover td { background: #fafbfc; }
+table.datos .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* -------------------------------------------------------------- Botones --- */
+.boton {
+    display: inline-block;
+    background: var(--color-principal);
+    color: #fff;
+    border: none;
+    border-radius: var(--radio);
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.boton:hover { background: #1a5fd0; }
+.boton.gris  { background: #6b7480; }
+.boton.gris:hover { background: #59616b; }
+
+/* ------------------------------------------------------------ Etiquetas --- */
+.etiqueta {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.etiqueta.ok     { background: #e6f4ec; color: var(--color-ok); }
+.etiqueta.alerta { background: #fdf0e3; color: var(--color-alerta); }
+.etiqueta.error  { background: #fdecea; color: var(--color-error); }
+
+/* --------------------------------------------------------- Formularios --- */
+.campo { margin-bottom: 14px; }
+.campo label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+
+.campo input, .campo select, .campo textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.campo input:focus, .campo select:focus {
+    outline: none;
+    border-color: var(--color-principal);
+}
+
+.error-campo { color: var(--color-error); font-size: 12px; margin-top: 4px; }
+
+/* ------------------------------------------------------------- Tarjetas --- */
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+
+.tarjeta {
+    background: var(--color-panel);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    padding: 18px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--sombra);
+}
+
+.tarjeta:hover { border-color: var(--color-principal); }
+.tarjeta h3 { margin: 0 0 6px; font-size: 15px; }
+.tarjeta p  { margin: 0; font-size: 13px; color: var(--color-suave); }
+.tarjeta .cifra { font-size: 26px; font-weight: 600; color: var(--color-oscuro); }
+
+/* --------------------------------------------------------------- Avisos --- */
+.aviso {
+    padding: 12px 16px;
+    border-radius: var(--radio);
+    font-size: 14px;
+    margin-bottom: 16px;
+    border-left: 3px solid;
+}
+
+.aviso.ok     { background: #e6f4ec; border-color: var(--color-ok);     color: #12603a; }
+.aviso.alerta { background: #fdf0e3; border-color: var(--color-alerta); color: #8a3a06; }
+.aviso.error  { background: #fdecea; border-color: var(--color-error);  color: #8a1c15; }
+
+/* --------------------------------------------------------------- Footer --- */
+.pie {
+    text-align: center;
+    color: var(--color-suave);
+    font-size: 12px;
+    padding: 24px;
+}
+
+/* ===========================================================================
+   COMPLEMENTOS - agreguen aqui lo que les falte
+   =========================================================================== */
