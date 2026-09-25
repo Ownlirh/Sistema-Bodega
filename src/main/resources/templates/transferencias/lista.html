@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- Transferencias de stock entre tiendas - integrante 7 -->
+<head th:replace="~{fragments/comunes :: cabecera('Transferencias')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Transferencias entre tiendas</h1>
+    <p class="subtitulo">Mueve stock de una tienda a otra. Queda registrado en el kardex.</p>
+
+    <!-- Mensajes que manda el controlador -->
+    <div class="aviso ok"    th:if="${ok}"    th:text="${ok}"></div>
+    <div class="aviso error" th:if="${error}" th:text="${error}"></div>
+
+    <!-- FORMULARIO -->
+    <div class="panel">
+        <h2 style="margin-top:0">Nueva transferencia</h2>
+        <form th:action="@{/transferencias/guardar}" method="post">
+
+            <div class="campo">
+                <label>Producto</label>
+                <select name="idProducto" required>
+                    <option value="">-- Seleccione --</option>
+                    <option th:each="p : ${productos}" th:value="${p.idProducto}"
+                            th:text="${p.codigo + ' - ' + p.descripcion}"></option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Tienda origen (sale)</label>
+                <select name="idOrigen" required>
+                    <option value="">-- Seleccione --</option>
+                    <option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"></option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Tienda destino (entra)</label>
+                <select name="idDestino" required>
+                    <option value="">-- Seleccione --</option>
+                    <option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"></option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Cantidad</label>
+                <input type="number" name="cantidad" min="1" required>
+            </div>
+
+            <div class="campo">
+                <label>Observacion (opcional)</label>
+                <input type="text" name="observacion" maxlength="150">
+            </div>
+
+            <button type="submit" class="boton">Registrar transferencia</button>
+        </form>
+    </div>
+
+    <!-- HISTORIAL -->
+    <h2>Historial</h2>
+    <div class="panel">
+        <table class="datos">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Origen</th>
+                <th>Destino</th>
+                <th class="num">Cantidad</th>
+                <th>Observacion</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${transferencias}">
+                <td th:text="${t.idTransferencia}">1</td>
+                <td th:text="${#temporals.format(t.fecha, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                <td th:text="${t.producto.descripcion}">Producto</td>
+                <td th:text="${t.tiendaOrigen.nombre}">Origen</td>
+                <td th:text="${t.tiendaDestino.nombre}">Destino</td>
+                <td class="num" th:text="${t.cantidad}">0</td>
+                <td th:text="${t.observacion != null ? t.observacion : '-'}">-</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(transferencias)}">
+                <td colspan="7">Todavia no hay transferencias.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
