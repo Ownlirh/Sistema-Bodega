@@ -1,0 +1,365 @@
+﻿<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Ventas')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Ventas</h1>
+
+    <p class="subtitulo">
+        Consulta el historial de ventas registradas en el sistema.
+    </p>
+
+
+    <!-- MENSAJE DE ÉXITO -->
+    <div th:if="${ok}"
+         class="panel">
+
+        <span class="etiqueta ok"
+              th:text="${ok}">
+            Operación realizada correctamente.
+        </span>
+
+    </div>
+
+
+    <!-- MENSAJE DE ERROR -->
+    <div th:if="${error}"
+         class="panel">
+
+        <span class="etiqueta error"
+              th:text="${error}">
+            Error
+        </span>
+
+    </div>
+
+
+    <!-- FILTROS -->
+    <div class="panel">
+
+        <h2>Filtros de búsqueda</h2>
+
+        <form th:action="@{/consultas/ventas}"
+              method="get">
+
+            <div style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                align-items: end;
+            ">
+
+                <div style="min-width: 180px;">
+
+                    <label for="desde">
+                        Desde
+                    </label>
+
+                    <input type="date"
+                           id="desde"
+                           name="desde"
+                           th:value="${desde}"
+                           style="width: 100%;">
+
+                </div>
+
+
+                <div style="min-width: 180px;">
+
+                    <label for="hasta">
+                        Hasta
+                    </label>
+
+                    <input type="date"
+                           id="hasta"
+                           name="hasta"
+                           th:value="${hasta}"
+                           style="width: 100%;">
+
+                </div>
+
+
+                <div style="min-width: 220px;">
+
+                    <label for="idTienda">
+                        Tienda
+                    </label>
+
+                    <select id="idTienda"
+                            name="idTienda"
+                            style="width: 100%;">
+
+                        <option value="">
+                            Todas las tiendas
+                        </option>
+
+                        <option th:each="tienda : ${tiendas}"
+                                th:value="${tienda.idTienda}"
+                                th:text="${tienda.nombre}"
+                                th:selected="${idTienda != null and idTienda == tienda.idTienda}">
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div style="
+                    display: flex;
+                    gap: 10px;
+                ">
+
+                    <button type="submit"
+                            class="boton">
+                        Buscar
+                    </button>
+
+                    <a th:href="@{/consultas/ventas}"
+                       class="boton">
+                        Limpiar
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- HISTORIAL -->
+    <div class="panel">
+
+        <h2>Historial de ventas</h2>
+
+        <p class="subtitulo">
+
+            Ventas encontradas:
+            <strong th:text="${#lists.size(ventas)}">
+                0
+            </strong>
+
+        </p>
+
+
+        <table class="datos">
+
+            <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Fecha</th>
+
+                <th>Tienda</th>
+
+                <th>Usuario</th>
+
+                <th class="num">
+                    Total
+                </th>
+
+                <th>
+                    Estado
+                </th>
+
+                <th>
+                    Acciones
+                </th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            <tr th:each="v : ${ventas}">
+
+                <!-- ID -->
+                <td th:text="${v.idVenta}">
+                    1
+                </td>
+
+
+                <!-- FECHA -->
+                <td th:text="${#temporals.format(v.fecha, 'dd/MM/yyyy HH:mm')}">
+                    26/09/2026 01:00
+                </td>
+
+
+                <!-- TIENDA -->
+                <td th:text="${v.tienda.nombre}">
+                    Tienda
+                </td>
+
+
+                <!-- USUARIO -->
+                <td th:text="${v.usuario.nombreCompleto}">
+                    Usuario
+                </td>
+
+
+                <!-- TOTAL -->
+                <td class="num"
+                    th:text="${#numbers.formatDecimal(v.total, 1, 2)}">
+                    0.00
+                </td>
+
+
+                <!-- ESTADO -->
+                <td>
+
+                    <span th:if="${v.estado}"
+                          class="etiqueta ok">
+                        Activa
+                    </span>
+
+                    <span th:unless="${v.estado}"
+                          class="etiqueta error">
+                        Anulada
+                    </span>
+
+                </td>
+
+
+                <!-- ACCIONES -->
+                <td>
+
+                    <div style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 6px;
+                    ">
+
+
+                        <!-- VER -->
+                        <a class="boton"
+                           th:href="@{/venta/{id}/comprobante(id=${v.idVenta})}">
+
+                            Ver
+
+                        </a>
+
+
+                        <!-- IMPRIMIR -->
+                        <a class="boton"
+                           target="_blank"
+                           th:href="@{/venta/{id}/comprobante(id=${v.idVenta},autoPrint=true)}">
+
+                            Imprimir
+
+                        </a>
+
+
+                        <!-- EDITAR -->
+                        <a th:if="${v.estado}"
+                           class="boton"
+                           th:href="@{/venta/{id}/editar(id=${v.idVenta})}">
+
+                            Editar
+
+                        </a>
+
+
+                        <!-- ANULAR -->
+                        <form th:if="${v.estado}"
+                              th:action="@{/venta/{id}/anular(id=${v.idVenta})}"
+                              method="post"
+                              class="form-anular"
+                              th:attr="data-venta-id=${v.idVenta}"
+                              style="display: inline;">
+
+                            <button type="submit"
+                                    class="boton">
+
+                                Anular
+
+                            </button>
+
+                        </form>
+
+
+                        <!-- VENTA ANULADA -->
+                        <span th:unless="${v.estado}"
+                              class="etiqueta error">
+
+                            No editable
+
+                        </span>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+
+            <!-- SIN RESULTADOS -->
+            <tr th:if="${#lists.isEmpty(ventas)}">
+
+                <td colspan="7">
+
+                    No se encontraron ventas
+                    con los filtros seleccionados.
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</main>
+
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+
+<script>
+
+document
+    .querySelectorAll(".form-anular")
+    .forEach(function (form) {
+
+        form.addEventListener("submit", function (event) {
+
+            const idVenta =
+                form.getAttribute("data-venta-id");
+
+            const confirmar =
+                window.confirm(
+                    "¿Está seguro de anular la venta #"
+                    + idVenta
+                    + "?\n\n"
+                    + "La venta permanecerá en el historial,"
+                    + " se devolverá el stock y se registrará"
+                    + " el movimiento correspondiente en Kardex."
+                );
+
+            if (!confirmar) {
+
+                event.preventDefault();
+
+            }
+
+        });
+
+    });
+
+</script>
+
+</body>
+</html>

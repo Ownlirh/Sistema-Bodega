@@ -1,0 +1,491 @@
+﻿<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Editar venta')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Editar venta</h1>
+
+    <p class="subtitulo">
+        Modifica los productos y cantidades de la venta.
+        El sistema actualizará automáticamente el stock.
+    </p>
+
+    <!-- ERROR -->
+    <div th:if="${error}" class="panel">
+
+        <span class="etiqueta error"
+              th:text="${error}">
+            Error
+        </span>
+
+    </div>
+
+    <!-- DATOS DE LA VENTA -->
+    <div class="panel">
+
+        <h2>Datos de la venta</h2>
+
+        <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        ">
+
+            <div>
+                <strong>Venta N.°:</strong>
+                <span th:text="${venta.idVenta}">1</span>
+            </div>
+
+            <div>
+                <strong>Fecha:</strong>
+                <span th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy HH:mm')}">
+                    26/09/2026 01:00
+                </span>
+            </div>
+
+            <div>
+                <strong>Usuario:</strong>
+                <span th:text="${venta.usuario.nombreCompleto}">
+                    Usuario
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FORMULARIO -->
+    <form th:action="@{/venta/{id}/editar(id=${venta.idVenta})}"
+          method="post"
+          id="formEditar">
+
+        <!-- TIENDA -->
+        <div class="panel">
+
+            <h2>Tienda</h2>
+
+            <label for="idTienda">
+                Tienda:
+            </label>
+
+            <select id="idTienda"
+                    name="idTienda"
+                    required>
+
+                <option value="">
+                    Seleccione una tienda
+                </option>
+
+                <option th:each="tienda : ${tiendas}"
+                        th:value="${tienda.idTienda}"
+                        th:text="${tienda.nombre}"
+                        th:selected="${venta.tienda.idTienda == tienda.idTienda}">
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- PRODUCTOS -->
+        <div class="panel">
+
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 10px;
+            ">
+
+                <div>
+                    <h2>Productos</h2>
+
+                    <p class="subtitulo">
+                        Modifica productos o cantidades según sea necesario.
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="boton"
+                        onclick="agregarFila()">
+                    + Agregar producto
+                </button>
+
+            </div>
+
+            <table class="datos"
+                   id="tablaProductos">
+
+                <thead>
+
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acción</th>
+                </tr>
+
+                </thead>
+
+                <tbody id="productosBody">
+
+                <tr th:each="detalle : ${detalles}"
+                    class="fila-producto">
+
+                    <td>
+
+                        <select name="idProducto"
+                                class="producto-select"
+                                required
+                                onchange="actualizarFila(this)">
+
+                            <option th:each="producto : ${productos}"
+                                    th:value="${producto.idProducto}"
+                                    th:text="${producto.descripcion}"
+                                    th:attr="data-precio=${producto.precioVenta}"
+                                    th:selected="${detalle.producto.idProducto == producto.idProducto}">
+                            </option>
+
+                        </select>
+
+                    </td>
+
+                    <td class="num precio">
+                        S/
+                        <span th:text="${#numbers.formatDecimal(detalle.precioUnitario, 1, 2)}">
+                            0.00
+                        </span>
+                    </td>
+
+                    <td>
+
+                        <input type="number"
+                               name="cantidad"
+                               class="cantidad-input"
+                               min="1"
+                               required
+                               th:value="${detalle.cantidad}"
+                               onchange="actualizarFila(this)"
+                               oninput="actualizarFila(this)">
+
+                    </td>
+
+                    <td class="num subtotal">
+
+                        S/
+                        <span th:text="${#numbers.formatDecimal(detalle.subtotal, 1, 2)}">
+                            0.00
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <button type="button"
+                                class="boton"
+                                onclick="eliminarFila(this)">
+                            Quitar
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+            <!-- MENSAJE SIN PRODUCTOS -->
+            <p id="sinProductos"
+               class="subtitulo"
+               style="display: none;">
+                Debe agregar al menos un producto.
+            </p>
+
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="panel">
+
+            <div style="
+                display: flex;
+                justify-content: flex-end;
+            ">
+
+                <h2>
+                    Nuevo total:
+                    S/
+                    <span id="totalVenta">
+                        0.00
+                    </span>
+                </h2>
+
+            </div>
+
+        </div>
+
+        <!-- ACCIONES -->
+        <div class="panel">
+
+            <div style="
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+            ">
+
+                <button type="submit"
+                        class="boton">
+                    Guardar cambios
+                </button>
+
+                <a class="boton"
+                   th:href="@{/consultas/ventas}">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+
+<!-- SELECT PARA CREAR NUEVAS FILAS -->
+<select id="productoPlantilla"
+        style="display: none;">
+
+    <option value="">
+        Seleccione un producto
+    </option>
+
+    <option th:each="producto : ${productos}"
+            th:value="${producto.idProducto}"
+            th:text="${producto.descripcion}"
+            th:attr="data-precio=${producto.precioVenta}">
+    </option>
+
+</select>
+
+
+<script>
+
+function obtenerPrecio(select) {
+
+    const opcion =
+        select.options[select.selectedIndex];
+
+    if (!opcion) {
+        return 0;
+    }
+
+    return parseFloat(
+        opcion.getAttribute("data-precio")
+    ) || 0;
+}
+
+
+function actualizarFila(elemento) {
+
+    const fila =
+        elemento.closest(".fila-producto");
+
+    if (!fila) {
+        return;
+    }
+
+    const select =
+        fila.querySelector(".producto-select");
+
+    const cantidadInput =
+        fila.querySelector(".cantidad-input");
+
+    const precioSpan =
+        fila.querySelector(".precio span");
+
+    const subtotalSpan =
+        fila.querySelector(".subtotal span");
+
+    const precio =
+        obtenerPrecio(select);
+
+    const cantidad =
+        parseInt(cantidadInput.value) || 0;
+
+    const subtotal =
+        precio * cantidad;
+
+    precioSpan.textContent =
+        precio.toFixed(2);
+
+    subtotalSpan.textContent =
+        subtotal.toFixed(2);
+
+    actualizarTotal();
+}
+
+
+function actualizarTotal() {
+
+    let total = 0;
+
+    document
+        .querySelectorAll(".subtotal span")
+        .forEach(function (elemento) {
+
+            const valor =
+                parseFloat(elemento.textContent) || 0;
+
+            total += valor;
+        });
+
+    document.getElementById("totalVenta")
+        .textContent =
+        total.toFixed(2);
+}
+
+
+function eliminarFila(boton) {
+
+    const fila =
+        boton.closest(".fila-producto");
+
+    if (!fila) {
+        return;
+    }
+
+    fila.remove();
+
+    revisarFilas();
+
+    actualizarTotal();
+}
+
+
+function agregarFila() {
+
+    const body =
+        document.getElementById("productosBody");
+
+    const fila =
+        document.createElement("tr");
+
+    fila.className =
+        "fila-producto";
+
+    const plantilla =
+        document.getElementById("productoPlantilla");
+
+    fila.innerHTML = `
+        <td>
+            <select name="idProducto"
+                    class="producto-select"
+                    required
+                    onchange="actualizarFila(this)">
+                ${plantilla.innerHTML}
+            </select>
+        </td>
+
+        <td class="num precio">
+            S/
+            <span>0.00</span>
+        </td>
+
+        <td>
+            <input type="number"
+                   name="cantidad"
+                   class="cantidad-input"
+                   min="1"
+                   value="1"
+                   required
+                   onchange="actualizarFila(this)"
+                   oninput="actualizarFila(this)">
+        </td>
+
+        <td class="num subtotal">
+            S/
+            <span>0.00</span>
+        </td>
+
+        <td>
+            <button type="button"
+                    class="boton"
+                    onclick="eliminarFila(this)">
+                Quitar
+            </button>
+        </td>
+    `;
+
+    body.appendChild(fila);
+
+    actualizarFila(
+        fila.querySelector(".producto-select")
+    );
+
+    revisarFilas();
+}
+
+
+function revisarFilas() {
+
+    const filas =
+        document.querySelectorAll(
+            ".fila-producto"
+        );
+
+    const mensaje =
+        document.getElementById(
+            "sinProductos"
+        );
+
+    if (filas.length === 0) {
+
+        mensaje.style.display =
+            "block";
+
+    } else {
+
+        mensaje.style.display =
+            "none";
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        document
+            .querySelectorAll(
+                ".fila-producto"
+            )
+            .forEach(function (fila) {
+
+                const select =
+                    fila.querySelector(
+                        ".producto-select"
+                    );
+
+                actualizarFila(select);
+            });
+
+        revisarFilas();
+        actualizarTotal();
+    }
+);
+
+</script>
+
+</body>
+</html>
