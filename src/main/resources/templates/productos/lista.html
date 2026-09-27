@@ -1,52 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<!--
-  ============================================================================
-  PANTALLA DE EJEMPLO - copien esta estructura para las suyas.
-
-  Muestra el camino completo: Controller -> Repository -> Modelo -> Vista,
-  usando los fragmentos comunes para que el diseno salga igual en todas.
-
-  Es SOLO LISTADO. El CRUD (registrar, editar, eliminar) le toca al
-  integrante 5. Esta pantalla se puede borrar cuando exista la de verdad.
-  ============================================================================
--->
-<head th:replace="~{fragments/comunes :: cabecera('Ejemplo - Productos')}"></head>
+<head th:replace="~{fragments/comunes :: cabecera('Mantenimiento de Productos')}"></head>
 <body>
 
 <div th:replace="~{fragments/comunes :: navbar}"></div>
 
 <main class="contenedor">
-
     <h1>Productos</h1>
-    <p class="subtitulo">Pantalla de ejemplo &middot; solo listado</p>
+    <p class="subtitulo">Gestión del catálogo de productos y precios</p>
 
-    <div class="aviso ok">
-        Esta pantalla existe como referencia. Miren
-        <code>DemoProductoController.java</code> y este archivo para ver como se
-        conectan controlador, repositorio y vista.
+    <div style="margin-bottom: 15px;">
+        <a th:href="@{/productos/nuevo}" class="boton" style="text-decoration: none;">+ Nuevo Producto</a>
     </div>
 
     <div class="panel">
         <table class="datos">
             <thead>
             <tr>
-                <th>Codigo</th>
-                <th>Descripcion</th>
-                <th>Categoria</th>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Categoría</th>
                 <th>Proveedor</th>
                 <th class="num">P. compra</th>
                 <th class="num">P. venta</th>
                 <th class="num">Margen</th>
                 <th>Estado</th>
+                <th>Acciones</th>
             </tr>
             </thead>
             <tbody>
-            <!-- th:each recorre la lista que el controlador puso en el modelo -->
             <tr th:each="p : ${productos}">
                 <td th:text="${p.codigo}">P000</td>
                 <td th:text="${p.descripcion}">Producto</td>
-                <td th:text="${p.categoria.nombre}">Categoria</td>
+                <td th:text="${p.categoria != null ? p.categoria.nombre : '-'}">Categoría</td>
                 <td th:text="${p.proveedor != null ? p.proveedor.razonSocial : '-'}">Proveedor</td>
                 <td class="num" th:text="${#numbers.formatDecimal(p.precioCompra, 1, 2)}">0.00</td>
                 <td class="num" th:text="${#numbers.formatDecimal(p.precioVenta, 1, 2)}">0.00</td>
@@ -55,10 +41,13 @@
                     <span th:if="${p.estado}" class="etiqueta ok">Activo</span>
                     <span th:unless="${p.estado}" class="etiqueta error">Inactivo</span>
                 </td>
+                <td>
+                    <a th:href="@{/productos/editar/{id}(id=${p.idProducto})}">Editar</a> |
+                    <a th:href="@{/productos/eliminar/{id}(id=${p.idProducto})}" onclick="return confirm('¿Seguro que deseas dar de baja este producto?');" style="color: red;">Eliminar</a>
+                </td>
             </tr>
-            <!-- Que mostrar si no hay nada -->
             <tr th:if="${#lists.isEmpty(productos)}">
-                <td colspan="8">No hay productos registrados.</td>
+                <td colspan="9" style="text-align: center;">No hay productos registrados.</td>
             </tr>
             </tbody>
         </table>

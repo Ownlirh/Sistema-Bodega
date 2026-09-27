@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Mantenimiento de Proveedores')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+    <h1>Proveedores</h1>
+    <p class="subtitulo">Gestión de proveedores de la bodega</p>
+
+    <div style="margin-bottom: 15px;">
+        <a th:href="@{/proveedores/nuevo}" class="boton" style="text-decoration: none;">+ Nuevo Proveedor</a>
+    </div>
+
+    <div class="panel">
+        <table class="datos">
+            <thead>
+            <tr>
+                <th>Razón Social</th>
+                <th>RUC</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${proveedores}">
+                <td th:text="${p.razonSocial}">Razón Social</td>
+                <td th:text="${p.ruc}">RUC</td>
+                <td th:text="${p.telefono}">Teléfono</td>
+                <td th:text="${p.email}">Email</td>
+                <td>
+                    <span th:if="${p.estado}" class="etiqueta ok">Activo</span>
+                    <span th:unless="${p.estado}" class="etiqueta error">Inactivo</span>
+                </td>
+                <td>
+                    <a th:href="@{/proveedores/editar/{id}(id=${p.idProveedor})}">Editar</a> |
+                    <a th:href="@{/proveedores/eliminar/{id}(id=${p.idProveedor})}" onclick="return confirm('¿Seguro que deseas dar de baja este proveedor?');" style="color: red;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(proveedores)}">
+                <td colspan="6" style="text-align: center;">No hay proveedores registrados.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="subtitulo">
+        Total: <span th:text="${#lists.size(proveedores)}">0</span> proveedores
+    </p>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>

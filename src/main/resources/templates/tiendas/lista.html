@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Mantenimiento de Tiendas')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+    <h1>Tiendas</h1>
+    <p class="subtitulo">Gestión de las sucursales de la bodega</p>
+
+    <div style="margin-bottom: 15px;">
+        <a th:href="@{/tiendas/nuevo}" class="boton" style="text-decoration: none;">+ Nueva Tienda</a>
+    </div>
+
+    <div class="panel">
+        <table class="datos">
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Dirección</th>
+                <th>Distrito</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${tiendas}">
+                <td th:text="${t.nombre}">Nombre Tienda</td>
+                <td th:text="${t.direccion}">Dirección</td>
+                <td th:text="${t.distrito}">Distrito</td>
+                <td th:text="${t.telefono}">Teléfono</td>
+                <td>
+                    <span th:if="${t.estado}" class="etiqueta ok">Activa</span>
+                    <span th:unless="${t.estado}" class="etiqueta error">Inactiva</span>
+                </td>
+                <td>
+                    <a th:href="@{/tiendas/editar/{id}(id=${t.idTienda})}">Editar</a> |
+                    <a th:href="@{/tiendas/eliminar/{id}(id=${t.idTienda})}" onclick="return confirm('¿Seguro que deseas dar de baja esta tienda?');" style="color: red;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(tiendas)}">
+                <td colspan="6" style="text-align: center;">No hay tiendas registradas.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="subtitulo">
+        Total: <span th:text="${#lists.size(tiendas)}">0</span> tiendas
+    </p>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>

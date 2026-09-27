@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Formulario de Proveedor')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+    <h1 th:text="${proveedor.idProveedor == null ? 'Nuevo Proveedor' : 'Editar Proveedor'}">Proveedor</h1>
+    <p class="subtitulo">Ingrese los datos del proveedor</p>
+
+    <div class="panel">
+        <form th:action="@{/proveedores/guardar}" th:object="${proveedor}" method="post">
+            <input type="hidden" th:field="*{idProveedor}" />
+            <input type="hidden" th:field="*{estado}" />
+
+            <div class="campo">
+                <label>Razón Social</label>
+                <input type="text" th:field="*{razonSocial}" required>
+            </div>
+
+            <div class="campo">
+                <label>RUC</label>
+                <input type="text" th:field="*{ruc}" maxlength="11">
+            </div>
+
+            <div class="campo">
+                <label>Teléfono</label>
+                <input type="text" th:field="*{telefono}" maxlength="15">
+            </div>
+
+            <div class="campo">
+                <label>Email</label>
+                <input type="email" th:field="*{email}" maxlength="80">
+            </div>
+
+            <button type="submit" class="boton">Guardar Proveedor</button>
+            <a th:href="@{/proveedores}" style="margin-left: 15px; text-decoration: none; color: #555;">Cancelar</a>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>

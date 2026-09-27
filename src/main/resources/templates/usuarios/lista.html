@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Mantenimiento de Empleados')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+    <h1>Empleados</h1>
+    <p class="subtitulo">Gestión de usuarios y accesos al sistema</p>
+
+    <div style="margin-bottom: 15px;">
+        <a th:href="@{/empleados/nuevo}" class="boton" style="text-decoration: none;">+ Nuevo Empleado</a>
+    </div>
+
+    <div class="panel">
+        <table class="datos">
+            <thead>
+            <tr>
+                <th>Username</th>
+                <th>Nombres y Apellidos</th>
+                <th>DNI</th>
+                <th>Rol</th>
+                <th>Tienda asignada</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${usuarios}">
+                <td th:text="${u.username}">admin</td>
+                <td th:text="${u.nombreCompleto}">Juan Perez</td>
+                <td th:text="${u.dni}">12345678</td>
+                <td th:text="${u.rol != null ? u.rol.nombre : '-'}">Rol</td>
+                <td th:text="${u.tienda != null ? u.tienda.nombre : 'Todas (Admin)'}">Tienda</td>
+                <td>
+                    <span th:if="${u.estado}" class="etiqueta ok">Activo</span>
+                    <span th:unless="${u.estado}" class="etiqueta error">Inactivo</span>
+                </td>
+                <td>
+                    <a th:href="@{/empleados/editar/{id}(id=${u.idUsuario})}">Editar</a> |
+                    <a th:href="@{/empleados/eliminar/{id}(id=${u.idUsuario})}" onclick="return confirm('¿Seguro que deseas dar de baja este empleado?');" style="color: red;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(usuarios)}">
+                <td colspan="7" style="text-align: center;">No hay empleados registrados.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="subtitulo">
+        Total: <span th:text="${#lists.size(usuarios)}">0</span> empleados
+    </p>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>

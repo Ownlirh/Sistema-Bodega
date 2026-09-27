@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Formulario de Empleado')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+    <h1 th:text="${usuario.idUsuario == null ? 'Nuevo Empleado' : 'Editar Empleado'}">Empleado</h1>
+    <p class="subtitulo">Ingrese los datos del usuario</p>
+
+    <div class="panel">
+        <form th:action="@{/empleados/guardar}" th:object="${usuario}" method="post">
+            <input type="hidden" th:field="*{idUsuario}" />
+            <input type="hidden" th:field="*{estado}" />
+
+            <div style="display: flex; gap: 15px;">
+                <div class="campo" style="flex: 1;">
+                    <label>Username (Usuario)</label>
+                    <input type="text" th:field="*{username}" maxlength="45" required>
+                </div>
+                <div class="campo" style="flex: 1;">
+                    <label>Password</label>
+                    <input type="password" th:field="*{password}" maxlength="100" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="campo" style="flex: 1;">
+                    <label>Nombres</label>
+                    <input type="text" th:field="*{nombres}" maxlength="60" required>
+                </div>
+                <div class="campo" style="flex: 1;">
+                    <label>Apellidos</label>
+                    <input type="text" th:field="*{apellidos}" maxlength="60" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="campo" style="flex: 1;">
+                    <label>DNI</label>
+                    <input type="text" th:field="*{dni}" maxlength="8">
+                </div>
+                <div class="campo" style="flex: 1;">
+                    <label>Email</label>
+                    <input type="email" th:field="*{email}" maxlength="80">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="campo" style="flex: 1;">
+                    <label>Rol</label>
+                    <select th:field="*{rol.idRol}" required>
+                        <option value="">-- Seleccione Rol --</option>
+                        <option th:each="r : ${roles}" 
+                                th:value="${r.idRol}" 
+                                th:text="${r.nombre}"></option>
+                    </select>
+                </div>
+                <div class="campo" style="flex: 1;">
+                    <label>Tienda</label>
+                    <select th:field="*{tienda.idTienda}">
+                        <option value="">-- Todas (Admin) --</option>
+                        <option th:each="t : ${tiendas}" 
+                                th:value="${t.idTienda}" 
+                                th:text="${t.nombre}"></option>
+                    </select>
+                    <small style="color: #666; font-size: 12px;">Dejar en "Todas" si el usuario es Administrador</small>
+                </div>
+            </div>
+
+            <button type="submit" class="boton" style="margin-top: 15px;">Guardar Empleado</button>
+            <a th:href="@{/empleados}" style="margin-left: 15px; text-decoration: none; color: #555;">Cancelar</a>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
