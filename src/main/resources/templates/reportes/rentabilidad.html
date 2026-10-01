@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Rentabilidad por producto')}"></head>
+<body><div th:replace="~{fragments/comunes :: navbar}"></div><main class="contenedor">
+<h1>Rentabilidad por producto</h1>
+<p class="subtitulo">Compare ingresos, costos y margen de los productos vendidos.</p>
+<nav class="reportes-nav" aria-label="Tipo de reporte">
+    <a class="reportes-nav__enlace" th:href="@{/reportes}">Ventas y PDF</a>
+    <a class="reportes-nav__enlace" th:href="@{/reportes/rentabilidad}" aria-current="page">Rentabilidad por producto</a>
+</nav>
+<div class="aviso">Estimación con el precio de compra actual del producto. La ganancia es bruta: no descuenta gastos operativos ni mermas. Cambiar el precio de compra modifica esta estimación, incluso para ventas anteriores.</div>
+<form class="panel" method="get" th:action="@{/reportes/rentabilidad}" th:object="${filtro}">
+ <div class="aviso error" th:if="${#fields.hasAnyErrors()}" role="alert"><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+ <div class="tarjetas">
+ <div class="campo"><label for="desde">Desde (incluido)</label><input type="date" th:field="*{desde}" min="1000-01-01" max="9999-12-30" required></div>
+ <div class="campo"><label for="hasta">Hasta (incluido)</label><input type="date" th:field="*{hasta}" min="1000-01-01" max="9999-12-30" required></div>
+ <div class="campo"><label for="idTienda">Tienda</label><select th:field="*{idTienda}"><option value="">Todas las tiendas</option><option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"></option></select></div>
+ </div><button class="boton" type="submit">Consultar rentabilidad</button>
+</form>
+<section th:if="${reporte != null}">
+ <h2 th:text="${reporte.tienda}"></h2>
+ <div class="tarjetas">
+ <div class="tarjeta"><h3>Ingresos (S/)</h3><p class="cifra" th:text="${#numbers.formatDecimal(reporte.ingresos,1,2)}"></p></div>
+ <div class="tarjeta"><h3>Costo estimado (S/)</h3><p class="cifra" th:text="${#numbers.formatDecimal(reporte.costos,1,2)}"></p></div>
+ <div class="tarjeta"><h3>Ganancia bruta estimada (S/)</h3><p class="cifra" th:text="${#numbers.formatDecimal(reporte.ganancia,1,2)}"></p></div>
+ <div class="tarjeta"><h3>Margen estimado</h3><p class="cifra" th:text="${reporte.margen == null ? 'N/D' : #numbers.formatDecimal(reporte.margen,1,2) + ' %'}"></p></div>
+ </div>
+ <div class="panel" style="overflow-x:auto"><table class="datos">
+ <thead><tr><th>Código</th><th>Producto</th><th>Unidades</th><th>Ingresos (S/)</th><th>Costo estimado (S/)</th><th>Ganancia estimada (S/)</th><th>Margen estimado</th></tr></thead>
+ <tbody><tr th:if="${#lists.isEmpty(reporte.filas)}"><td colspan="7">Sin ventas en este período.</td></tr>
+ <tr th:each="f : ${reporte.filas}"><td th:text="${f.codigo}"></td><td th:text="${f.descripcion}"></td><td th:text="${f.unidades}"></td>
+ <td th:text="${#numbers.formatDecimal(f.ingresos,1,2)}"></td><td th:text="${#numbers.formatDecimal(f.costos,1,2)}"></td><td th:text="${#numbers.formatDecimal(f.ganancia,1,2)}"></td>
+ <td th:text="${f.margen == null ? 'N/D' : #numbers.formatDecimal(f.margen,1,2) + ' %'}"></td></tr></tbody>
+ </table></div>
+ <p>Solo ventas activas. Margen = ganancia ÷ ingresos × 100. N/D indica ingresos iguales a cero. El margen total se calcula sobre los importes totales.</p>
+</section>
+</main><div th:replace="~{fragments/comunes :: pie}"></div></body></html>

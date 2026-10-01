@@ -9,6 +9,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface VentaRepository extends JpaRepository<Venta, Integer> {
+    @Query("select v from Venta v join fetch v.tienda join fetch v.usuario "
+         + "where v.estado = true and v.fecha >= :desde and v.fecha < :fin "
+         + "and (:idTienda is null or v.tienda.idTienda = :idTienda) order by v.fecha, v.idVenta")
+    List<Venta> buscarParaReporte(@Param("desde") LocalDateTime desde,
+                                 @Param("fin") LocalDateTime fin,
+                                 @Param("idTienda") Integer idTienda,
+                                 org.springframework.data.domain.Pageable limite);
 
     /**
      * CONSULTA 1 del proyecto: ventas por rango de fechas y tienda.
