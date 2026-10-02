@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ventas" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="746" leftMargin="48" rightMargin="48" topMargin="32" bottomMargin="32" whenNoDataType="AllSectionsNoDetail">
+  <style name="Base" isDefault="true" fontName="DejaVu Sans" fontSize="10" forecolor="#243447" />
+  <parameter name="PERIODO" class="java.lang.String" />
+  <parameter name="TIENDA" class="java.lang.String" />
+  <parameter name="GENERADO" class="java.lang.String" />
+  <parameter name="TOTAL" class="java.math.BigDecimal" />
+  <field name="numero" class="java.lang.Integer" />
+  <field name="fecha" class="java.lang.String" />
+  <field name="tienda" class="java.lang.String" />
+  <field name="vendedor" class="java.lang.String" />
+  <field name="total" class="java.math.BigDecimal" />
+  <title>
+    <band height="110" splitType="Prevent">
+      <staticText>
+        <reportElement x="0" y="0" width="746" height="18" forecolor="#53677B" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <text>SISTEMA DE BODEGAS</text>
+      </staticText>
+      <staticText>
+        <reportElement x="0" y="22" width="746" height="32" forecolor="#17375E" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="24" isBold="true" />
+        </textElement>
+        <text>Reporte de ventas</text>
+      </staticText>
+      <textField isBlankWhenNull="true">
+        <reportElement x="0" y="59" width="746" height="18" forecolor="#243447" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <textFieldExpression>"Período: " + $P{PERIODO}</textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="0" y="79" width="746" height="18" forecolor="#243447" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <textFieldExpression>"Tienda: " + $P{TIENDA}</textFieldExpression>
+      </textField>
+    </band>
+  </title>
+  <pageHeader>
+    <band height="20" splitType="Prevent">
+      <staticText>
+        <reportElement x="0" y="0" width="746" height="16" forecolor="#53677B" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="9" isBold="false" />
+        </textElement>
+        <text>Ventas activas | Importes en soles (S/)</text>
+      </staticText>
+    </band>
+  </pageHeader>
+  <columnHeader>
+    <band height="29" splitType="Prevent">
+      <rectangle>
+        <reportElement x="0" y="0" width="746" height="27" mode="Opaque" backcolor="#17375E" />
+        <graphicElement>
+          <pen lineWidth="0.0" />
+        </graphicElement>
+      </rectangle>
+      <staticText>
+        <reportElement x="7" y="3" width="31" height="21" forecolor="#FFFFFF" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <text>N.º</text>
+      </staticText>
+      <staticText>
+        <reportElement x="52" y="3" width="101" height="21" forecolor="#FFFFFF" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <text>Fecha</text>
+      </staticText>
+      <staticText>
+        <reportElement x="167" y="3" width="201" height="21" forecolor="#FFFFFF" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <text>Tienda</text>
+      </staticText>
+      <staticText>
+        <reportElement x="382" y="3" width="231" height="21" forecolor="#FFFFFF" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <text>Vendedor</text>
+      </staticText>
+      <staticText>
+        <reportElement x="627" y="3" width="112" height="21" forecolor="#FFFFFF" />
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <text>Total (S/)</text>
+      </staticText>
+    </band>
+  </columnHeader>
+  <detail>
+    <band height="28" splitType="Prevent">
+      <rectangle>
+        <reportElement x="0" y="0" width="746" height="28" mode="Opaque" backcolor="#F1F5F9" stretchType="ContainerHeight">
+          <printWhenExpression>$V{REPORT_COUNT} % 2 == 0</printWhenExpression>
+        </reportElement>
+        <graphicElement>
+          <pen lineWidth="0.0" />
+        </graphicElement>
+      </rectangle>
+      <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+        <reportElement x="7" y="3" width="31" height="22" forecolor="#243447" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <textFieldExpression>$F{numero}</textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+        <reportElement x="52" y="3" width="101" height="22" forecolor="#243447" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <textFieldExpression>$F{fecha}</textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+        <reportElement x="167" y="3" width="201" height="22" forecolor="#243447" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <textFieldExpression>$F{tienda}</textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+        <reportElement x="382" y="3" width="231" height="22" forecolor="#243447" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <textFieldExpression>$F{vendedor}</textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true" pattern="#,##0.00" textAdjust="StretchHeight">
+        <reportElement x="627" y="3" width="112" height="22" forecolor="#243447" />
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <textFieldExpression>$F{total}</textFieldExpression>
+      </textField>
+    </band>
+  </detail>
+  <pageFooter>
+    <band height="30" splitType="Prevent">
+      <textField isBlankWhenNull="true">
+        <reportElement x="0" y="7" width="595" height="18" forecolor="#53677B" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="8" isBold="false" />
+        </textElement>
+        <textFieldExpression>"Generado: " + $P{GENERADO}</textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true">
+        <reportElement x="610" y="7" width="136" height="18" forecolor="#53677B" />
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="9" isBold="false" />
+        </textElement>
+        <textFieldExpression>"Página " + $V{PAGE_NUMBER}</textFieldExpression>
+      </textField>
+    </band>
+  </pageFooter>
+  <summary>
+    <band height="82" splitType="Prevent">
+      <staticText>
+        <reportElement x="7" y="3" width="732" height="23" forecolor="#53677B">
+          <printWhenExpression>$V{REPORT_COUNT} == 0</printWhenExpression>
+        </reportElement>
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="false" />
+        </textElement>
+        <text>Sin ventas en este período.</text>
+      </staticText>
+      <rectangle>
+        <reportElement x="0" y="31" width="746" height="33" mode="Opaque" backcolor="#E8EFF7" />
+        <graphicElement>
+          <pen lineWidth="0.0" />
+        </graphicElement>
+      </rectangle>
+      <textField isBlankWhenNull="true">
+        <reportElement x="8" y="35" width="420" height="25" forecolor="#243447" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <textFieldExpression>"Ventas: " + $V{REPORT_COUNT}</textFieldExpression>
+      </textField>
+      <staticText>
+        <reportElement x="460" y="35" width="156" height="25" forecolor="#243447" />
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <text>TOTAL (S/)</text>
+      </staticText>
+      <textField isBlankWhenNull="true" pattern="#,##0.00">
+        <reportElement x="623" y="35" width="116" height="25" forecolor="#243447" />
+        <textElement textAlignment="Right" verticalAlignment="Middle">
+          <font size="10" isBold="true" />
+        </textElement>
+        <textFieldExpression>$P{TOTAL}</textFieldExpression>
+      </textField>
+      <staticText>
+        <reportElement x="7" y="65" width="732" height="17" forecolor="#53677B" />
+        <textElement textAlignment="Left" verticalAlignment="Middle">
+          <font size="8" isBold="false" />
+        </textElement>
+        <text>Las ventas anuladas están excluidas. Este total no representa utilidad.</text>
+      </staticText>
+    </band>
+  </summary>
+</jasperReport>
