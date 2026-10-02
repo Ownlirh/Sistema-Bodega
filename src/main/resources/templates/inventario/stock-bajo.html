@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- Consulta de stock bajo el minimo - integrante 7 -->
+<head th:replace="~{fragments/comunes :: cabecera('Stock bajo el minimo')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Stock bajo el minimo</h1>
+    <p class="subtitulo">Productos que ya llegaron o bajaron de su stock minimo y hay que reponer.</p>
+
+    <!-- FILTRO -->
+    <div class="panel">
+        <form th:action="@{/inventario/stock-bajo}" method="get">
+            <div class="campo">
+                <label>Tienda</label>
+                <select name="idTienda">
+                    <option value="">-- Todas --</option>
+                    <option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"
+                            th:selected="${t.idTienda == idTienda}"></option>
+                </select>
+            </div>
+            <button type="submit" class="boton">Consultar</button>
+        </form>
+    </div>
+
+    <div class="aviso ok" th:if="${#lists.isEmpty(stocks)}">
+        Todo bien: ningun producto esta bajo su stock minimo.
+    </div>
+
+    <div class="panel" th:unless="${#lists.isEmpty(stocks)}">
+        <table class="datos">
+            <thead>
+            <tr>
+                <th>Codigo</th>
+                <th>Producto</th>
+                <th>Tienda</th>
+                <th class="num">Stock actual</th>
+                <th class="num">Stock minimo</th>
+                <th class="num">Faltan</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${stocks}">
+                <td th:text="${s.producto.codigo}">P001</td>
+                <td th:text="${s.producto.descripcion}">Producto</td>
+                <td th:text="${s.tienda.nombre}">Tienda</td>
+                <td class="num" th:text="${s.cantidad}">0</td>
+                <td class="num" th:text="${s.producto.stockMinimo}">0</td>
+                <td class="num" th:text="${s.producto.stockMinimo - s.cantidad}">0</td>
+                <td>
+                    <span th:if="${s.cantidad == 0}" class="etiqueta error">Agotado</span>
+                    <span th:unless="${s.cantidad == 0}" class="etiqueta alerta">Reponer</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="subtitulo">
+        Total: <span th:text="${#lists.size(stocks)}">0</span> productos por reponer
+    </p>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>

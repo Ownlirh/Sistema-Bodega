@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- Consulta del kardex - integrante 7 -->
+<head th:replace="~{fragments/comunes :: cabecera('Kardex')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Kardex de movimientos</h1>
+    <p class="subtitulo">Cada entrada y salida de stock, con el saldo antes y despues del movimiento.</p>
+
+    <!-- FILTROS: el formulario usa GET, asi los filtros quedan en la URL -->
+    <div class="panel">
+        <form th:action="@{/kardex}" method="get">
+            <div class="campo">
+                <label>Producto</label>
+                <select name="idProducto">
+                    <option value="">-- Todos --</option>
+                    <option th:each="p : ${productos}" th:value="${p.idProducto}"
+                            th:text="${p.codigo + ' - ' + p.descripcion}"
+                            th:selected="${p.idProducto == idProducto}"></option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Tienda</label>
+                <select name="idTienda">
+                    <option value="">-- Todas --</option>
+                    <option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"
+                            th:selected="${t.idTienda == idTienda}"></option>
+                </select>
+            </div>
+
+            <button type="submit" class="boton">Consultar</button>
+            <a th:href="@{/kardex}" class="boton gris">Limpiar</a>
+        </form>
+    </div>
+
+    <!-- Stock actual: solo aparece cuando se eligio producto Y tienda -->
+    <div class="aviso ok" th:if="${stockActual != null}">
+        Stock actual en esta tienda: <strong th:text="${stockActual}">0</strong> unidades
+    </div>
+
+    <!-- TABLA DE MOVIMIENTOS -->
+    <div class="panel">
+        <table class="datos">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Tienda</th>
+                <th>Tipo</th>
+                <th class="num">Stock antes</th>
+                <th class="num">Movimiento</th>
+                <th class="num">Stock despues</th>
+                <th>Referencia</th>
+                <th>Usuario</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="k : ${movimientos}">
+                <td th:text="${#temporals.format(k.fecha, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                <td th:text="${k.producto.descripcion}">Producto</td>
+                <td th:text="${k.tienda.nombre}">Tienda</td>
+                <td>
+                    <!-- Verde si entra mercaderia, rojo si sale -->
+                    <span th:class="${k.cantidad >= 0} ? 'etiqueta ok' : 'etiqueta error'"
+                          th:text="${k.tipo}">TIPO</span>
+                </td>
+                <td class="num" th:text="${k.stockAntes}">0</td>
+                <td class="num" th:text="${k.cantidad > 0 ? '+' + k.cantidad : k.cantidad}">0</td>
+                <td class="num"><strong th:text="${k.stockDespues}">0</strong></td>
+                <td th:text="${k.referencia != null ? k.referencia : '-'}">-</td>
+                <td th:text="${k.usuario.username}">admin</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(movimientos)}">
+                <td colspan="9">No hay movimientos con esos filtros.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="subtitulo">
+        Total: <span th:text="${#lists.size(movimientos)}">0</span> movimientos
+    </p>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
