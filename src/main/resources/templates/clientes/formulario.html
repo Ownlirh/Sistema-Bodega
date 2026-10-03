@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Nuevo cliente')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <div class="panel">
+
+        <h1>Nuevo cliente</h1>
+
+        <form th:action="@{/clientes/guardar}" th:object="${cliente}" method="post">
+
+            <div class="campo">
+                <label>Nombres</label>
+                <input type="text" th:field="*{nombres}" required>
+            </div>
+
+            <div class="campo">
+                <label>Apellidos</label>
+                <input type="text" th:field="*{apellidos}" required>
+            </div>
+
+            <div class="campo">
+                <label>DNI</label>
+                <input type="text" th:field="*{dni}" maxlength="8">
+            </div>
+
+            <div class="campo">
+                <label>Telefono</label>
+                <input type="text" th:field="*{telefono}" maxlength="15">
+            </div>
+
+            <div class="campo">
+                <label>Direccion</label>
+                <input type="text" th:field="*{direccion}" maxlength="120">
+            </div>
+
+            <button type="submit" class="boton">Guardar cliente</button>
+
+            <a href="/clientes" class="boton">Cancelar</a>
+
+        </form>
+
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Clientes')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <div class="panel">
+
+        <h1>Clientes</h1>
+
+        <p>Listado de clientes registrados.</p>
+
+        <table class="datos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>DNI</th>
+                    <th>Telefono</th>
+                    <th>Direccion</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="cliente : ${clientes}">
+                    <td th:text="${cliente.idCliente}"></td>
+                    <td th:text="${cliente.nombres}"></td>
+                    <td th:text="${cliente.apellidos}"></td>
+                    <td th:text="${cliente.dni}"></td>
+                    <td th:text="${cliente.telefono}"></td>
+                    <td th:text="${cliente.direccion}"></td>
+                    <td th:text="${cliente.estado ? 'Activo' : 'Inactivo'}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
