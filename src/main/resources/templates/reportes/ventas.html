@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Reporte de ventas')}"></head>
+<body><div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+    <h1>Reporte de ventas</h1><p class="subtitulo">Consulte las ventas activas por fecha y tienda, y descargue el reporte en PDF.</p>
+    <nav class="reportes-nav" aria-label="Tipo de reporte">
+        <a class="reportes-nav__enlace" th:href="@{/reportes}" aria-current="page">Ventas y PDF</a>
+        <a class="reportes-nav__enlace" th:href="@{/reportes/rentabilidad}">Rentabilidad por producto <span aria-hidden="true">→</span></a>
+    </nav>
+    <form class="panel" method="get" th:action="@{/reportes}" th:object="${filtro}">
+        <div class="aviso error" th:if="${#fields.hasAnyErrors()}" role="alert"><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+        <div class="tarjetas">
+            <div class="campo"><label for="desde">Desde (incluido)</label><input type="date" th:field="*{desde}" min="1000-01-01" max="9999-12-30" required></div>
+            <div class="campo"><label for="hasta">Hasta (incluido)</label><input type="date" th:field="*{hasta}" min="1000-01-01" max="9999-12-30" required></div>
+            <div class="campo"><label for="idTienda">Tienda</label><select th:field="*{idTienda}">
+                <option value="">Todas las tiendas</option><option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"></option>
+            </select></div>
+        </div>
+        <button type="submit" class="boton">Consultar</button>
+        <button type="submit" class="boton gris" th:formaction="@{/reportes/ventas/pdf}">Descargar PDF</button>
+    </form>
+    <section th:if="${reporte != null}">
+        <div class="tarjetas">
+            <div class="tarjeta"><h3>Ventas del período</h3><p class="cifra" th:text="${#lists.size(reporte.filas)}"></p></div>
+            <div class="tarjeta"><h3>Total vendido (S/)</h3><p class="cifra" th:text="${#numbers.formatDecimal(reporte.total, 1, 2)}"></p></div>
+        </div>
+        <h2>Ventas activas</h2>
+        <p th:if="${#lists.size(reporte.filas) > 100}">Vista previa de las primeras 100 ventas. El PDF incluye todos los resultados del filtro.</p>
+        <div class="panel" style="overflow-x:auto"><table class="datos">
+            <thead><tr><th>N.º</th><th>Fecha</th><th>Tienda</th><th>Vendedor</th><th>Total (S/)</th></tr></thead>
+            <tbody><tr th:if="${#lists.isEmpty(vista)}"><td colspan="5">Sin ventas en este período.</td></tr>
+            <tr th:each="v : ${vista}"><td th:text="${v.numero}"></td><td th:text="${#temporals.format(v.fecha, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${v.tienda}"></td><td th:text="${v.vendedor}"></td><td class="num" th:text="${#numbers.formatDecimal(v.total, 1, 2)}"></td>
+            </tr></tbody>
+        </table></div>
+        <p>Importes en soles. Las ventas anuladas quedan excluidas. El total no representa utilidad.</p>
+    </section>
+</main><div th:replace="~{fragments/comunes :: pie}"></div></body></html>

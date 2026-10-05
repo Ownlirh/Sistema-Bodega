@@ -39,7 +39,8 @@ body {
     display: flex;
     align-items: center;
     gap: 28px;
-    height: 56px;
+    min-height: 56px;
+    flex-wrap: wrap;
     box-shadow: var(--sombra);
 }
 
@@ -51,7 +52,7 @@ body {
     white-space: nowrap;
 }
 
-.navbar nav { display: flex; gap: 20px; flex: 1; }
+.navbar nav { display: flex; gap: 12px 20px; flex: 1; flex-wrap: wrap; padding: 12px 0; }
 
 .navbar nav a {
     color: #c9d6e6;
@@ -191,3 +192,47 @@ table.datos .num { text-align: right; font-variant-numeric: tabular-nums; }
 /* ===========================================================================
    COMPLEMENTOS - agreguen aqui lo que les falte
    =========================================================================== */
+
+.reportes-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 6px;
+    margin-bottom: 24px;
+    background: #e9eef5;
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+}
+
+.reportes-nav__enlace {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    color: var(--color-oscuro);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.reportes-nav__enlace:hover { background: #dce5f1; }
+.reportes-nav__enlace[aria-current="page"] {
+    background: var(--color-oscuro);
+    color: #fff;
+    box-shadow: var(--sombra);
+}
+.reportes-nav__enlace:focus-visible {
+    outline: 3px solid var(--color-principal);
+    outline-offset: 2px;
+}
+
+@media (max-width: 540px) {
+    .reportes-nav { width: 100%; }
+    .reportes-nav__enlace { width: 100%; }
+}

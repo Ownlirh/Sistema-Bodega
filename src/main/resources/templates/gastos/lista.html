@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Gastos operativos')}"></head>
+<body>
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+    <h1>Gastos operativos</h1>
+    <p class="subtitulo">Registre alquiler, servicios, transporte y otros gastos de cada tienda.</p>
+    <p class="aviso ok" role="status" th:if="${ok}" th:text="${ok}"></p>
+    <form class="panel" th:action="@{/gastos}" th:object="${gastoForm}" method="post">
+        <div class="aviso error" th:if="${#fields.hasAnyErrors()}" role="alert">
+            <p>Revise los datos del gasto:</p>
+            <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+        </div>
+        <div class="tarjetas">
+            <div class="campo"><label for="idTienda">Tienda</label>
+                <select th:field="*{idTienda}" required>
+                    <option value="">Seleccione una tienda</option>
+                    <option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"></option>
+                </select>
+            </div>
+            <div class="campo"><label for="idCategoriaGasto">Categoría</label>
+                <select th:field="*{idCategoriaGasto}" required>
+                    <option value="">Seleccione una categoría</option>
+                    <option th:each="c : ${categorias}" th:value="${c.idCategoriaGasto}" th:text="${c.nombre}"></option>
+                </select>
+            </div>
+            <div class="campo"><label for="fecha">Fecha del gasto</label>
+                <input type="date" th:field="*{fecha}" min="1000-01-01" th:max="${hoy}" required>
+            </div>
+            <div class="campo"><label for="monto">Importe (S/)</label>
+                <input type="number" th:field="*{monto}" min="0.01" max="99999999.99" step="0.01" placeholder="0.00" required>
+            </div>
+        </div>
+        <div class="campo"><label for="descripcion">Descripción (opcional)</label>
+            <textarea th:field="*{descripcion}" maxlength="120" rows="2" placeholder="Ejemplo: recibo de luz de septiembre"></textarea>
+        </div>
+        <button type="submit" class="boton">Registrar gasto</button>
+    </form>
+    <h2>Últimos 50 gastos por fecha</h2>
+    <p>Total de los registros mostrados: <strong>S/ <span th:text="${#numbers.formatDecimal(totalMostrado, 1, 2)}"></span></strong></p>
+    <div class="panel" style="overflow-x:auto">
+        <table class="datos"><thead><tr><th>N.º</th><th>Fecha</th><th>Tienda</th><th>Categoría</th><th>Descripción</th><th>Registrado por</th><th>Importe (S/)</th></tr></thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(gastos)}"><td colspan="7">Todavía no hay gastos registrados.</td></tr>
+            <tr th:each="g : ${gastos}">
+                <td th:text="${g.idGasto}"></td><td th:text="${#temporals.format(g.fecha, 'dd/MM/yyyy')}"></td>
+                <td th:text="${g.tienda.nombre}"></td><td th:text="${g.categoriaGasto.nombre}"></td>
+                <td th:text="${g.descripcion}"></td><td th:text="${g.usuario.nombreCompleto}"></td>
+                <td class="num" th:text="${#numbers.formatDecimal(g.monto, 1, 2)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<div th:replace="~{fragments/comunes :: pie}"></div>
+</body>
+</html>

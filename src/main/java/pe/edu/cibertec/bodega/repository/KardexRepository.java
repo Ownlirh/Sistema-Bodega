@@ -12,4 +12,10 @@ public interface KardexRepository extends JpaRepository<Kardex, Integer> {
 
     /** Todos los movimientos de una tienda, los mas recientes primero. */
     List<Kardex> findByTiendaIdTiendaOrderByFechaDesc(Integer idTienda);
+
+    /** Todos los movimientos de un producto (en todas las tiendas), los mas recientes primero. */
+    List<Kardex> findByProductoIdProductoOrderByFechaDesc(Integer idProducto);
+
+    /** Todos los movimientos del sistema, los mas recientes primero. */
+    List<Kardex> findAllByOrderByFechaDesc();
 }

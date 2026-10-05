@@ -8,6 +8,17 @@ import java.util.List;
 
 public interface VentaDetalleRepository extends JpaRepository<VentaDetalle, Integer> {
 
+    @Query("SELECT d.producto.idProducto, d.producto.codigo, d.producto.descripcion, SUM(d.cantidad), "
+         + "SUM(d.subtotal), SUM(d.cantidad * d.producto.precioCompra) FROM VentaDetalle d "
+         + "WHERE d.venta.estado = true AND d.venta.fecha >= :desde AND d.venta.fecha < :fin "
+         + "AND (:tienda IS NULL OR d.venta.tienda.idTienda = :tienda) "
+         + "GROUP BY d.producto.idProducto, d.producto.codigo, d.producto.descripcion "
+         + "ORDER BY SUM(d.subtotal) - SUM(d.cantidad * d.producto.precioCompra) DESC, d.producto.idProducto")
+    List<Object[]> buscarRentabilidad(
+        @org.springframework.data.repository.query.Param("desde") java.time.LocalDateTime desde,
+        @org.springframework.data.repository.query.Param("fin") java.time.LocalDateTime fin,
+        @org.springframework.data.repository.query.Param("tienda") Integer tienda);
+
     List<VentaDetalle> findByVentaIdVenta(Integer idVenta);
 
     /**

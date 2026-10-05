@@ -29,6 +29,7 @@ public class TransferenciaService {
     @Autowired private ProductoRepository productoRepo;
     @Autowired private TiendaRepository tiendaRepo;
     @Autowired private KardexService kardexService;
+    @Autowired private LoteService loteService;
 
     @Transactional
     public Transferencia registrar(Integer idProducto, Integer idOrigen, Integer idDestino,
@@ -77,6 +78,7 @@ public class TransferenciaService {
         stockDestino.setCantidad(antesDestino + cantidad);
         stockRepo.save(stockOrigen);
         stockRepo.save(stockDestino);
+        loteService.trasladar(producto, origen, destino, cantidad, usuario);
 
         // ---------- 4. Guardar la transferencia ----------
         Transferencia t = new Transferencia();
