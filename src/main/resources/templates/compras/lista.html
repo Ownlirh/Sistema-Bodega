@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Compras a proveedores')}"></head>
+<body>
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+    <h1>Compras a proveedores</h1>
+    <p class="subtitulo">Registre la mercadería recibida. La compra aumentará el stock de la tienda seleccionada.</p>
+    <p class="aviso ok" th:if="${ok}" th:text="${ok}"></p>
+    <form class="panel" th:action="@{/compras}" th:object="${compraForm}" method="post" id="form-compra">
+        <div class="aviso error" th:if="${#fields.hasAnyErrors()}" role="alert">
+            <p>Revise los datos de la compra:</p>
+            <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+        </div>
+        <div class="tarjetas">
+            <div class="campo"><label for="idProveedor">Proveedor</label>
+                <select th:field="*{idProveedor}" required>
+                    <option value="">Seleccione un proveedor</option>
+                    <option th:each="p : ${proveedores}" th:value="${p.idProveedor}" th:text="${p.razonSocial}"></option>
+                </select>
+            </div>
+            <div class="campo"><label for="idTienda">Tienda que recibe</label>
+                <select th:field="*{idTienda}" required>
+                    <option value="">Seleccione una tienda</option>
+                    <option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"></option>
+                </select>
+            </div>
+        </div>
+        <div style="overflow-x:auto">
+            <table class="datos"><thead><tr><th>Producto</th><th>Cantidad</th><th>Costo unitario (S/)</th><th>Subtotal (S/)</th><th>Acción</th></tr></thead>
+                <tbody id="lineas">
+                <tr th:each="linea, fila : *{lineas}">
+                    <td class="campo"><select th:field="*{lineas[__${fila.index}__].idProducto}" required aria-label="Producto">
+                        <option value="">Seleccione un producto</option>
+                        <option th:each="p : ${productos}" th:value="${p.idProducto}" th:text="${p.codigo + ' — ' + p.descripcion}"></option>
+                    </select></td>
+                    <td class="campo"><input th:field="*{lineas[__${fila.index}__].cantidad}" type="number" min="1" max="2147483647" step="1" required aria-label="Cantidad"></td>
+                    <td class="campo"><input th:field="*{lineas[__${fila.index}__].costo}" type="number" min="0.01" max="99999999.99" step="0.01" required aria-label="Costo unitario"></td>
+                    <td class="num subtotal">0.00</td>
+                    <td><button type="button" class="boton gris quitar">Quitar</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p><button type="button" class="boton gris" id="agregar">Agregar producto</button></p>
+        <p><strong>Total estimado: S/ <output id="total" aria-live="polite">0.00</output></strong></p>
+        <button type="submit" class="boton" id="guardar">Registrar compra</button>
+    </form>
+    <h2>Últimas 50 compras</h2>
+    <div class="panel" style="overflow-x:auto">
+        <table class="datos"><thead><tr><th>N.º</th><th>Fecha</th><th>Proveedor</th><th>Tienda</th><th>Registrado por</th><th>Total (S/)</th></tr></thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(compras)}"><td colspan="6">Todavía no hay compras registradas.</td></tr>
+            <tr th:each="c : ${compras}">
+                <td th:text="${c.idCompra}"></td><td th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${c.proveedor.razonSocial}"></td><td th:text="${c.tienda.nombre}"></td>
+                <td th:text="${c.usuario.nombreCompleto}"></td><td class="num" th:text="${#numbers.formatDecimal(c.total, 1, 2)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<div th:replace="~{fragments/comunes :: pie}"></div>
+<script th:src="@{/js/compras.js}" defer></script>
+</body>
+</html>

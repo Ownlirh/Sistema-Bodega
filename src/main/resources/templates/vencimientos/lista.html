@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Lotes y vencimientos')}"></head>
+<body><div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+    <h1>Lotes y vencimientos</h1>
+    <p class="subtitulo">Identifique los lotes del inventario y revise cuáles necesitan atención.</p>
+    <p class="aviso ok" th:if="${ok}" th:text="${ok}" role="status"></p>
+    <div class="tarjetas">
+        <div class="tarjeta"><h3>Lotes vencidos con saldo</h3><p class="cifra" th:text="${vencidos}"></p></div>
+        <div class="tarjeta"><h3>Vencen entre hoy y 30 días</h3><p class="cifra" th:text="${proximos}"></p></div>
+    </div>
+    <h2>Asignar lote al stock existente</h2>
+    <p class="aviso alerta">Esta operación no aumenta el stock. Si acaba de recibir mercadería, registre primero su compra. La cantidad del lote no puede superar las unidades aún sin lote.</p>
+    <form class="panel" th:action="@{/vencimientos}" th:object="${loteForm}" method="post">
+        <div class="aviso error" th:if="${#fields.hasAnyErrors()}" role="alert"><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+        <div class="tarjetas">
+            <div class="campo"><label for="idProducto">Producto</label><select th:field="*{idProducto}" required>
+                <option value="">Seleccione un producto</option><option th:each="p : ${productos}" th:value="${p.idProducto}" th:text="${p.descripcion}"></option>
+            </select></div>
+            <div class="campo"><label for="idTienda">Tienda</label><select th:field="*{idTienda}" required>
+                <option value="">Seleccione una tienda</option><option th:each="t : ${tiendas}" th:value="${t.idTienda}" th:text="${t.nombre}"></option>
+            </select></div>
+            <div class="campo"><label for="codigo">Código de lote del envase</label><input th:field="*{codigo}" maxlength="60" required></div>
+            <div class="campo"><label for="vencimiento">Fecha de vencimiento</label><input type="date" th:field="*{vencimiento}" min="1000-01-01" max="9999-12-31" required></div>
+            <div class="campo"><label for="cantidad">Unidades de este lote</label><input type="number" th:field="*{cantidad}" min="1" max="2147483647" step="1" required></div>
+        </div>
+        <button class="boton" type="submit">Asignar lote</button>
+        <a class="boton gris" th:href="@{/mermas}">Registrar merma</a>
+    </form>
+    <h2>Lotes con saldo, por vencimiento</h2>
+    <p>El vencimiento se considera al finalizar la fecha indicada. Un lote vencido permanece en stock hasta registrar su merma.</p>
+    <div class="panel" style="overflow-x:auto"><table class="datos">
+        <thead><tr><th>N.º</th><th>Lote</th><th>Producto</th><th>Tienda</th><th>Vencimiento</th><th>Saldo</th><th>Estado</th></tr></thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(lotes)}"><td colspan="7">Todavía no hay lotes con saldo. Asigne un lote al stock existente.</td></tr>
+        <tr th:each="l : ${lotes}">
+            <td th:text="${l.idLote}"></td><td th:text="${l.codigo}"></td><td th:text="${l.producto.descripcion}"></td><td th:text="${l.tienda.nombre}"></td>
+            <td th:text="${#temporals.format(l.vencimiento, 'dd/MM/yyyy')}"></td><td class="num" th:text="${l.disponible}"></td>
+            <td><span class="etiqueta error" th:if="${l.vencimiento.isBefore(hoy)}">Vencido</span>
+                <span class="etiqueta alerta" th:if="${!l.vencimiento.isBefore(hoy) and !l.vencimiento.isAfter(limite)}">Próximo a vencer</span>
+                <span class="etiqueta ok" th:if="${l.vencimiento.isAfter(limite)}">Vigente</span></td>
+        </tr></tbody>
+    </table></div>
+</main><div th:replace="~{fragments/comunes :: pie}"></div></body></html>

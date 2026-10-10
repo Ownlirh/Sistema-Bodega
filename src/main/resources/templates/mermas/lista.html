@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Mermas')}"></head>
+<body><div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+    <h1>Mermas</h1><p class="subtitulo">Registre productos retirados por vencimiento, daño, rotura u otra causa.</p>
+    <p class="aviso ok" role="status" th:if="${ok}" th:text="${ok}"></p>
+    <p class="aviso alerta">Al registrar una merma se descuentan unidades del lote y del stock. Si el producto aún no tiene lote, <a th:href="@{/vencimientos}">asígnelo primero</a>.</p>
+    <form class="panel" th:action="@{/mermas}" th:object="${mermaForm}" method="post">
+        <div class="aviso error" th:if="${#fields.hasAnyErrors()}" role="alert"><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+        <div class="campo"><label for="idLote">Lote, producto y tienda</label><select th:field="*{idLote}" required>
+            <option value="">Seleccione un lote</option>
+            <option th:each="l : ${lotes}" th:value="${l.idLote}" th:text="${'#' + l.idLote + ' · ' + l.codigo + ' · ' + l.producto.descripcion + ' · ' + l.tienda.nombre + ' · vence ' + #temporals.format(l.vencimiento, 'dd/MM/yyyy') + ' · saldo ' + l.disponible}"></option>
+        </select></div>
+        <div class="tarjetas">
+            <div class="campo"><label for="cantidad">Cantidad a retirar</label><input type="number" th:field="*{cantidad}" min="1" max="2147483647" step="1" required></div>
+            <div class="campo"><label for="motivo">Motivo</label><select th:field="*{motivo}" required>
+                <option value="">Seleccione un motivo</option>
+                <option value="VENCIMIENTO">Vencimiento</option><option value="DANO">Daño</option><option value="ROTURA">Rotura</option><option value="OTRO">Otro</option>
+            </select></div>
+        </div>
+        <div class="campo"><label for="descripcion">Descripción de la pérdida</label><textarea th:field="*{descripcion}" maxlength="150" rows="2" required></textarea></div>
+        <button class="boton" type="submit" th:disabled="${#lists.isEmpty(lotes)}">Registrar merma</button>
+        <a class="boton gris" th:href="@{/vencimientos}">Ver vencimientos</a>
+    </form>
+    <h2>Últimas 50 mermas</h2>
+    <div class="panel" style="overflow-x:auto"><table class="datos">
+        <thead><tr><th>N.º</th><th>Fecha</th><th>Producto</th><th>Tienda</th><th>Lote</th><th>Cantidad</th><th>Motivo</th><th>Descripción</th><th>Usuario</th></tr></thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(mermas)}"><td colspan="9">Todavía no hay mermas registradas.</td></tr>
+        <tr th:each="m : ${mermas}">
+            <td th:text="${m.idMerma}"></td><td th:text="${#temporals.format(m.fecha, 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${m.lote.producto.descripcion}"></td><td th:text="${m.lote.tienda.nombre}"></td><td th:text="${m.lote.codigo}"></td>
+            <td class="num" th:text="${m.cantidad}"></td><td th:text="${m.motivo.name() == 'DANO' ? 'DAÑO' : m.motivo}"></td>
+            <td th:text="${m.descripcion}"></td><td th:text="${m.usuario.nombreCompleto}"></td>
+        </tr></tbody>
+    </table></div>
+</main><div th:replace="~{fragments/comunes :: pie}"></div></body></html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- Alertas de stock y productos por vencer - integrante 7 -->
+<head th:replace="~{fragments/comunes :: cabecera('Alertas')}"></head>
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Alertas de inventario</h1>
+    <p class="subtitulo">Lo que hay que atender hoy: productos sin stock, por reponer y por vencer.</p>
+
+    <!-- RESUMEN EN TARJETAS -->
+    <div class="tarjetas">
+        <div class="tarjeta">
+            <h3>Agotados</h3>
+            <div class="cifra" th:text="${#lists.size(agotados)}">0</div>
+            <p>Productos con stock 0</p>
+        </div>
+        <div class="tarjeta">
+            <h3>Bajo el minimo</h3>
+            <div class="cifra" th:text="${#lists.size(bajos)}">0</div>
+            <p>Hay que reponer</p>
+        </div>
+        <div class="tarjeta">
+            <h3>Lotes vencidos</h3>
+            <div class="cifra" th:text="${#lists.size(vencidos)}">0</div>
+            <p>Retirar del estante</p>
+        </div>
+        <div class="tarjeta">
+            <h3>Por vencer</h3>
+            <div class="cifra" th:text="${#lists.size(porVencer)}">0</div>
+            <p th:text="'En los proximos ' + ${diasAviso} + ' dias'">En los proximos 30 dias</p>
+        </div>
+    </div>
+
+    <!-- 1. AGOTADOS -->
+    <h2>Productos agotados</h2>
+    <div class="aviso ok" th:if="${#lists.isEmpty(agotados)}">No hay productos agotados.</div>
+    <div class="panel" th:unless="${#lists.isEmpty(agotados)}">
+        <table class="datos">
+            <thead><tr><th>Codigo</th><th>Producto</th><th>Tienda</th><th class="num">Stock minimo</th><th>Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${agotados}">
+                <td th:text="${s.producto.codigo}">P001</td>
+                <td th:text="${s.producto.descripcion}">Producto</td>
+                <td th:text="${s.tienda.nombre}">Tienda</td>
+                <td class="num" th:text="${s.producto.stockMinimo}">0</td>
+                <td><span class="etiqueta error">Agotado</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 2. BAJO EL MINIMO -->
+    <h2>Productos bajo el minimo</h2>
+    <div class="aviso ok" th:if="${#lists.isEmpty(bajos)}">Ningun producto esta bajo su minimo.</div>
+    <div class="panel" th:unless="${#lists.isEmpty(bajos)}">
+        <table class="datos">
+            <thead><tr><th>Codigo</th><th>Producto</th><th>Tienda</th><th class="num">Stock</th><th class="num">Minimo</th><th>Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${bajos}">
+                <td th:text="${s.producto.codigo}">P001</td>
+                <td th:text="${s.producto.descripcion}">Producto</td>
+                <td th:text="${s.tienda.nombre}">Tienda</td>
+                <td class="num" th:text="${s.cantidad}">0</td>
+                <td class="num" th:text="${s.producto.stockMinimo}">0</td>
+                <td><span class="etiqueta alerta">Reponer</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 3. VENCIDOS -->
+    <h2>Lotes vencidos</h2>
+    <div class="aviso ok" th:if="${#lists.isEmpty(vencidos)}">No hay lotes vencidos con stock.</div>
+    <div class="panel" th:unless="${#lists.isEmpty(vencidos)}">
+        <table class="datos">
+            <thead><tr><th>Lote</th><th>Producto</th><th>Tienda</th><th>Vencio el</th><th class="num">Unidades</th><th>Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="l : ${vencidos}">
+                <td th:text="${l.codigo}">L001</td>
+                <td th:text="${l.producto.descripcion}">Producto</td>
+                <td th:text="${l.tienda.nombre}">Tienda</td>
+                <td th:text="${#temporals.format(l.vencimiento, 'dd/MM/yyyy')}">01/01/2026</td>
+                <td class="num" th:text="${l.disponible}">0</td>
+                <td><span class="etiqueta error">Vencido</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 4. POR VENCER -->
+    <h2>Lotes por vencer</h2>
+    <div class="aviso ok" th:if="${#lists.isEmpty(porVencer)}">Ningun lote vence pronto.</div>
+    <div class="panel" th:unless="${#lists.isEmpty(porVencer)}">
+        <table class="datos">
+            <thead><tr><th>Lote</th><th>Producto</th><th>Tienda</th><th>Vence el</th><th class="num">Dias</th><th class="num">Unidades</th></tr></thead>
+            <tbody>
+            <tr th:each="l : ${porVencer}">
+                <td th:text="${l.codigo}">L001</td>
+                <td th:text="${l.producto.descripcion}">Producto</td>
+                <td th:text="${l.tienda.nombre}">Tienda</td>
+                <td th:text="${#temporals.format(l.vencimiento, 'dd/MM/yyyy')}">01/01/2026</td>
+                <!-- Dias que faltan: se calcula con ChronoUnit de Java -->
+                <td class="num">
+                    <span class="etiqueta alerta"
+                          th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(hoy, l.vencimiento)}">0</span>
+                </td>
+                <td class="num" th:text="${l.disponible}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
