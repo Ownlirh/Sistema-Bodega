@@ -86,16 +86,10 @@
         </dependency>
 
         <!--
-        ========================================================================
-        PENDIENTES - descomentar cuando le toque a cada responsable
-        ========================================================================
-
-        INTEGRANTE 3 (login, roles y sesiones):
-        Ojo: apenas se agrega esta dependencia, Spring Security bloquea TODAS
-        las rutas con un login por defecto. Hay que crear la clase de
-        configuracion en el paquete config antes de que el resto pueda seguir
-        trabajando, asi que avisar al grupo antes de subir este cambio.
-
+        Alumno 3: login, roles y sesiones. El codigo del paquete security
+        (SecurityConfig, UsuarioDetailsService, AppUserDetails) ya esta en Dev,
+        asi que estas dependencias son obligatorias para que el proyecto compile.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -104,21 +98,11 @@
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
-
-        INTEGRANTE 5 (reportes JasperReports):
-
         <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports</artifactId>
-            <version>6.21.3</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports-fonts</artifactId>
-            <version>6.21.3</version>
-        </dependency>
-        ========================================================================
-        -->
     </dependencies>
 
     <build>

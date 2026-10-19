@@ -16,6 +16,8 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(GastoController.class)
@@ -36,20 +38,20 @@ class GastoControllerTest {
         when(tiendas.findByEstadoTrue()).thenReturn(List.of(t));
     }
     @Test void muestraFormularioEHistorial() throws Exception {
-        mvc.perform(get("/gastos")).andExpect(status().isOk())
+        mvc.perform(get("/gastos").with(user(TestSecurityUsers.admin()))).andExpect(status().isOk())
             .andExpect(content().string(containsString("Servicios")))
             .andExpect(content().string(containsString("Recibo de luz")))
             .andExpect(model().attribute("totalMostrado", new BigDecimal("25.50")));
     }
     @Test void rechazaImporteInvalido() throws Exception {
-        mvc.perform(post("/gastos").param("idTienda", "1").param("idCategoriaGasto", "2")
+        mvc.perform(post("/gastos").with(user(TestSecurityUsers.admin())).with(csrf()).param("idTienda", "1").param("idCategoriaGasto", "2")
             .param("fecha", "2026-01-01").param("monto", "-2"))
             .andExpect(status().isOk()).andExpect(model().attributeHasErrors("gastoForm"));
         verifyNoInteractions(servicio);
     }
     @Test void mantieneDatosAnteErrorDeNegocio() throws Exception {
         when(servicio.registrar(any(), eq(1))).thenThrow(new IllegalArgumentException("La fecha del gasto no puede ser futura."));
-        mvc.perform(post("/gastos").param("idTienda", "1").param("idCategoriaGasto", "2")
+        mvc.perform(post("/gastos").with(user(TestSecurityUsers.admin())).with(csrf()).param("idTienda", "1").param("idCategoriaGasto", "2")
             .param("fecha", "2099-01-01").param("monto", "25.50").param("descripcion", "Pago ingresado"))
             .andExpect(status().isOk()).andExpect(model().attributeHasErrors("gastoForm"))
             .andExpect(content().string(containsString("Pago ingresado")))
@@ -57,7 +59,7 @@ class GastoControllerTest {
     }
     @Test void redirigeTrasRegistrar() throws Exception {
         Gasto g = new Gasto(); g.setIdGasto(20); when(servicio.registrar(any(), eq(1))).thenReturn(g);
-        mvc.perform(post("/gastos").param("idTienda", "1").param("idCategoriaGasto", "2")
+        mvc.perform(post("/gastos").with(user(TestSecurityUsers.admin())).with(csrf()).param("idTienda", "1").param("idCategoriaGasto", "2")
             .param("fecha", "2026-01-01").param("monto", "25.50"))
             .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/gastos"))
             .andExpect(flash().attributeExists("ok"));

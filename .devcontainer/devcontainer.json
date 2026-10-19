@@ -1,0 +1,33 @@
+{
+  // Entorno de desarrollo dentro de un contenedor.
+  //
+  // En VS Code: F1 > "Dev Containers: Reopen in Container".
+  // Necesita Docker Desktop y la extension "Dev Containers" de Microsoft.
+  //
+  // Java 17, Maven y las extensiones quedan DENTRO del contenedor: tu Windows
+  // no se toca. Para desinstalar todo, borras los contenedores y listo.
+  "name": "Sistema Bodega",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
+  "service": "workspace",
+  "workspaceFolder": "/workspace",
+  "runServices": ["mysql", "workspace"],
+  "forwardPorts": [8080, 3306],
+  "portsAttributes": {
+    "8080": { "label": "Aplicacion", "onAutoForward": "notify" },
+    "3306": { "label": "MySQL" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-boot-dev-pack",
+        "redhat.vscode-xml"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic"
+      }
+    }
+  },
+  // Deja las dependencias bajadas antes de que empieces a trabajar.
+  "postCreateCommand": "mvn -B -q dependency:go-offline"
+}

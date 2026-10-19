@@ -4,7 +4,16 @@ import pe.edu.cibertec.bodega.model.Rol;
 import pe.edu.cibertec.bodega.model.Usuario;
 import pe.edu.cibertec.bodega.security.AppUserDetails;
 
-/** Principal admin reutilizable para pruebas MVC que atraviesan Spring Security. */
+/**
+ * Principal admin reutilizable para pruebas MVC que atraviesan Spring Security.
+ *
+ * OJO con el alcance: @WebMvcTest NO carga la SecurityConfig del proyecto, porque
+ * esa clase no es un controlador. Spring Boot autoconfigura la cadena de filtros
+ * POR DEFECTO, que solo exige estar autenticado. Es decir: estas pruebas verifican
+ * que el controlador responde bien, pero NO validan la matriz de roles (quien puede
+ * entrar a /compras, /reportes, etc.). Esa matriz hoy no la prueba nadie; hace falta
+ * un @SpringBootTest para cubrirla.
+ */
 final class TestSecurityUsers {
     private TestSecurityUsers() {}
 

@@ -13,6 +13,8 @@ import java.util.*;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(VencimientoController.class)
@@ -33,12 +35,12 @@ class VencimientoControllerTest {
         when(mermas.findAll(any(Pageable.class))).thenReturn(Page.empty());
     }
     @Test void muestraVencidosYFormulario() throws Exception {
-        mvc.perform(get("/vencimientos")).andExpect(status().isOk())
+        mvc.perform(get("/vencimientos").with(user(TestSecurityUsers.admin()))).andExpect(status().isOk())
             .andExpect(model().attribute("vencidos", 1L)).andExpect(model().attribute("proximos", 0L))
             .andExpect(content().string(containsString("LOTE-A"))).andExpect(content().string(containsString("Vencido")));
     }
     @Test void muestraSeleccionLoteEnMermas() throws Exception {
-        mvc.perform(get("/mermas")).andExpect(status().isOk())
+        mvc.perform(get("/mermas").with(user(TestSecurityUsers.admin()))).andExpect(status().isOk())
             .andExpect(content().string(containsString("LOTE-A"))).andExpect(content().string(containsString("Yogur")));
     }
     @Test void muestraHistorialDeMerma() throws Exception {
@@ -46,24 +48,24 @@ class VencimientoControllerTest {
         Merma m = new Merma(); m.setIdMerma(1); m.setLote(lote); m.setFecha(LocalDateTime.now());
         m.setUsuario(u); m.setCantidad(1); m.setMotivo(Merma.Motivo.DANO); m.setDescripcion("Envase roto");
         when(mermas.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(m)));
-        mvc.perform(get("/mermas")).andExpect(status().isOk()).andExpect(content().string(containsString("Envase roto")));
+        mvc.perform(get("/mermas").with(user(TestSecurityUsers.admin()))).andExpect(status().isOk()).andExpect(content().string(containsString("Envase roto")));
     }
     @Test void rechazaMermaCantidadCero() throws Exception {
-        mvc.perform(post("/mermas").param("idLote", "1").param("cantidad", "0")
+        mvc.perform(post("/mermas").with(user(TestSecurityUsers.admin())).with(csrf()).param("idLote", "1").param("cantidad", "0")
             .param("motivo", "DANO").param("descripcion", "Envase roto"))
             .andExpect(status().isOk()).andExpect(model().attributeHasErrors("mermaForm"));
         verifyNoInteractions(mermaService);
     }
     @Test void conservaFormularioAnteSaldoInsuficiente() throws Exception {
         when(mermaService.registrar(any(), eq(1))).thenThrow(new IllegalArgumentException("Saldo insuficiente"));
-        mvc.perform(post("/mermas").param("idLote", "1").param("cantidad", "99")
+        mvc.perform(post("/mermas").with(user(TestSecurityUsers.admin())).with(csrf()).param("idLote", "1").param("cantidad", "99")
             .param("motivo", "DANO").param("descripcion", "Envase roto"))
             .andExpect(status().isOk()).andExpect(content().string(containsString("Saldo insuficiente")))
             .andExpect(content().string(containsString("Envase roto")));
     }
     @Test void redirigeTrasAsignarLote() throws Exception {
         when(loteService.registrar(any(), eq(1))).thenReturn(lote);
-        mvc.perform(post("/vencimientos").param("idProducto", "1").param("idTienda", "1")
+        mvc.perform(post("/vencimientos").with(user(TestSecurityUsers.admin())).with(csrf()).param("idProducto", "1").param("idTienda", "1")
             .param("codigo", "LOTE-A").param("vencimiento", "2026-12-01").param("cantidad", "5"))
             .andExpect(redirectedUrl("/vencimientos")).andExpect(flash().attributeExists("ok"));
     }
