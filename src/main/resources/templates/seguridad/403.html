@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Acceso denegado')}"></head>
+<body>
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+    <div class="panel">
+        <h1>Acceso denegado</h1>
+        <p>No tienes permisos para acceder a este recurso o los datos pertenecen a otra tienda.</p>
+        <a class="boton" th:href="@{/}">Volver al inicio</a>
+    </div>
+</main>
+<div th:replace="~{fragments/comunes :: pie}"></div>
+</body>
+</html>

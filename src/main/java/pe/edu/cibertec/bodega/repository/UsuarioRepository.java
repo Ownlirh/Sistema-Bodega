@@ -13,5 +13,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     /** Empleados de una tienda: lo usa el mantenimiento de empleados. */
     List<Usuario> findByTiendaIdTienda(Integer idTienda);
 
+    long countByTiendaIdTienda(Integer idTienda);
+
     List<Usuario> findByEstadoTrue();
 }

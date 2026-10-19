@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Bitácora de auditoría')}"></head>
+<body>
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+    <h1>Bitácora de auditoría</h1>
+    <p class="subtitulo">Últimos 200 eventos de seguridad y operaciones. Vista reservada al administrador.</p>
+    <div class="panel">
+        <p>Se registran intentos de inicio de sesión, cierres de sesión, apertura de caja, movimientos y arqueos.</p>
+        <div style="overflow-x:auto">
+            <table class="datos">
+                <thead><tr><th>Fecha</th><th>Usuario</th><th>Tienda ID</th><th>Acción</th><th>Detalle</th><th>IP</th><th>Resultado</th></tr></thead>
+                <tbody>
+                <tr th:each="e : ${eventos}">
+                    <td th:text="${#temporals.format(e.fecha, 'dd/MM/yyyy HH:mm:ss')}">18/10/2026 10:00:00</td>
+                    <td th:text="${e.username}">admin</td>
+                    <td th:text="${e.idTienda == null ? 'Todas / no identificada' : e.idTienda}">1</td>
+                    <td th:text="${e.accion}">INICIO_SESION</td>
+                    <td th:text="${e.detalle}">Detalle</td>
+                    <td th:text="${e.direccionIp}">127.0.0.1</td>
+                    <td><span class="etiqueta" th:classappend="${e.resultado == 'OK' ? ' ok' : ' error'}" th:text="${e.resultado}">OK</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(eventos)}"><td colspan="7">Todavía no hay eventos de auditoría.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/comunes :: pie}"></div>
+</body>
+</html>
