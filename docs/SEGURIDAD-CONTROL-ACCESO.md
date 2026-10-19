@@ -1,70 +1,110 @@
 # Seguridad y control de acceso
 
-Este documento describe el módulo de Seguridad y Control de Acceso del Sistema de Bodega.
+Módulo del alumno 3. Este documento se conserva porque la matriz de permisos
+es la referencia del equipo: si alguien cambia una regla en `SecurityConfig`,
+tiene que cambiarla también acá y en el navbar.
 
 ## Componentes
 
-- `security/SecurityConfig.java`: define las rutas públicas, la autenticación por formulario, el logout, CSRF, la protección de sesión y los permisos por rol.
-- `security/UsuarioDetailsService.java`: busca usuarios por `username` y permite actualizar su contraseña tras un inicio de sesión válido.
-- `security/AppUserDetails.java`: expone el usuario, el rol y la tienda asociada a la sesión.
-- `security/LegacyAwarePasswordEncoder.java`: permite una migración temporal de contraseñas heredadas en texto plano a BCrypt. Las contraseñas nuevas se codifican con BCrypt.
-- `service/TiendaAccessService.java`: centraliza la validación de tiendas permitidas.
-- `service/AuditoriaService.java`: guarda eventos de auditoría.
-- `service/CajaService.java` y `controller/CajaController.java`: gestionan apertura, movimientos, cierre y arqueo.
-- `controller/SeguridadAuditoriaController.java`: presenta los últimos eventos de auditoría al administrador.
+| Archivo | Qué hace |
+|---|---|
+| `security/SecurityConfig.java` | Rutas públicas, login por formulario, logout, CSRF, protección de sesión y permisos por rol |
+| `security/UsuarioDetailsService.java` | Busca usuarios por `username` y actualiza su clave tras un login válido |
+| `security/AppUserDetails.java` | Expone usuario, rol y tienda de la sesión |
+| `security/LegacyAwarePasswordEncoder.java` | Migra claves heredadas en texto plano a BCrypt. Las nuevas siempre van con BCrypt |
+| `security/SesionModelAdvice.java` | Deja `usuarioSesion`, `rolSesion` y `tiendaSesion` en el modelo de todas las pantallas |
+| `service/TiendaAccessService.java` | Centraliza la validación de tiendas permitidas |
+| `service/AuditoriaService.java` | Guarda eventos en la bitácora |
+| `service/CajaService.java` + `controller/CajaController.java` | Apertura, movimientos, cierre y arqueo |
 
 ## Matriz de permisos
 
+Esta matriz la verifica `SeguridadE2ETest`, ruta por ruta y rol por rol.
+
 | Área | Administrador | Manager | Vendedor |
 |---|---|---|---|
-| Inicio de sesión y cierre de sesión | Sí | Sí | Sí |
-| Auditoría y diagnóstico | Sí | No | No |
+| Inicio y cierre de sesión | Sí | Sí | Sí |
+| Auditoría y diagnóstico (`/health/**`) | Sí | No | No |
 | Transferencias entre tiendas | Sí | No | No |
 | Reportes y panel global | Sí | No | No |
 | Compras, gastos, ajustes, lotes y mermas | Sí | Sí, solo su tienda | No |
 | Caja diaria | Sí | Sí, solo su tienda | Sí, solo su tienda |
-| Consulta de stock bajo, alertas y kardex | Todas las tiendas | Su tienda | Su tienda |
+| Stock bajo, alertas y kardex | Todas las tiendas | Su tienda | Su tienda |
 | Lectura del catálogo de productos | Sí | Sí | Sí |
-| Crear/modificar productos (POST) | Sí | Sí | No |
+| Crear o modificar productos (POST) | Sí | Sí | No |
 
-Los permisos de la interfaz solo mejoran la experiencia. La autorización real se aplica en el servidor mediante Spring Security y validaciones de tienda.
+Esconder un enlace en el navbar **no es la protección**: eso solo evita
+ofrecer una puerta que va a dar 403. La autorización real la aplica
+`SecurityConfig` en el servidor.
 
 ## Filtrado por tienda
 
-El administrador puede consultar tiendas activas. Los demás usuarios tienen una tienda asociada a su cuenta. El sistema debe validar el `idTienda` recibido por URL o formulario antes de consultar o modificar datos.
+El administrador no tiene tienda asignada y ve todas. Los demás usuarios
+tienen una, y el sistema valida el `idTienda` que llega por URL o formulario
+antes de consultar o modificar nada.
 
-El control se aplica en caja, compras, gastos, ajustes, lotes, mermas, alertas, kardex y stock bajo. Los reportes globales están reservados al administrador hasta que sus consultas incorporen filtros obligatorios por tienda.
+Se aplica en caja, compras, gastos, ajustes, lotes, mermas, alertas, kardex y
+stock bajo. Los reportes globales quedan reservados al administrador hasta que
+sus consultas incorporen un filtro obligatorio por tienda.
 
 ## Caja diaria
 
-1. Apertura: registra tienda, usuario, fecha y monto inicial.
-2. Movimientos: acepta entradas o salidas con concepto y monto positivo.
-3. Cierre: calcula efectivo esperado a partir del monto inicial, ventas y movimientos.
-4. Arqueo: compara el efectivo contado con el esperado.
+1. **Apertura:** registra tienda, usuario, fecha y monto inicial. Solo puede
+   haber una caja abierta por tienda a la vez.
+2. **Movimientos:** entradas o salidas, con concepto y monto positivo.
+3. **Cierre y arqueo:**
 
-`Diferencia = efectivo contado - efectivo esperado`. Una diferencia positiva indica sobrante y una negativa, faltante.
+```
+esperado   = monto inicial + ventas del turno + entradas - salidas
+diferencia = efectivo contado - esperado
+```
+
+Una diferencia positiva es sobrante; una negativa, faltante. Las ventas
+anuladas y las de otras tiendas no entran en el cálculo.
 
 ## Bitácora
 
-Se registran inicios y cierres de sesión, intentos fallidos, accesos denegados, compras, gastos, ajustes, transferencias, lotes, mermas y operaciones de caja. Cada evento conserva fecha, usuario, tienda cuando se conoce, acción, detalle, dirección IP y resultado.
+Se registran inicios y cierres de sesión, intentos fallidos, accesos denegados
+y las operaciones de caja. Cada evento guarda fecha, usuario, tienda cuando se
+conoce, acción, detalle, dirección IP y resultado.
 
-La tabla se crea mediante `db/06_seguridad_caja.sql`.
+La tabla sale de `db/06_seguridad_caja.sql`.
 
-## Cómo probar manualmente
+## Pendientes conocidos del módulo
 
-1. En un entorno local de desarrollo, ejecuta `scripts/setup-bd.ps1`. **Este script recrea la base `bodegadb`; no lo ejecutes si necesitas conservar datos existentes.**
-2. Arranca la aplicación y abre `http://localhost:8080/login`.
-3. Inicia sesión con una cuenta de prueba que exista en `tb_usuarios`.
-4. Como administrador, comprueba que puedes entrar a Auditoría y Transferencias.
-5. Como manager o vendedor, prueba Caja y consultas de inventario.
-6. Con una cuenta de tienda, intenta cambiar el `idTienda` en las URLs de stock bajo, kardex o caja. El servidor debe rechazar el acceso a otra tienda.
-7. Cierra sesión y verifica que vuelves al formulario de login.
-8. Revisa los eventos en `/seguridad/auditoria` o consulta `tb_auditoria` en MySQL.
+Estos puntos están verificados contra la aplicación corriendo:
 
-## Antes de producción
+- **`/caja` devuelve 500.** `CajaController` devuelve la vista `caja/index` y
+  esa plantilla no existe. Toda la lógica de apertura, movimientos y arqueo
+  está escrita y probada, pero no se puede usar desde el navegador.
+- **`/seguridad/auditoria` devuelve 404.** La plantilla
+  `templates/seguridad/auditoria.html` existe y `SecurityConfig` ya protege la
+  ruta, pero **falta el controlador que la sirva**. La bitácora se escribe
+  bien; no hay forma de leerla desde la aplicación.
+- **El id de usuario sigue hardcodeado en `1`** en `CompraController:39`,
+  `VencimientoController:36` y `VencimientoController:67`, con el comentario
+  "Sustituir por usuario autenticado". Hay que tomarlo con
+  `@AuthenticationPrincipal AppUserDetails`.
 
-- Cambia o elimina las cuentas de demostración.
-- Elimina la compatibilidad con contraseñas en texto plano una vez migradas todas las cuentas.
-- Usa HTTPS y secretos de base de datos en variables de entorno.
-- No publiques contraseñas, tokens ni `application-local.properties`.
-- Ejecuta `mvn test` y `mvn package` antes de fusionar el cambio. Esta copia no se pudo compilar en el entorno de edición porque Maven no está instalado.
+## Cómo probarlo
+
+La suite lo cubre de punta a punta, contra una base de verdad:
+
+```bash
+docker compose --profile dev run --rm --no-deps app-dev mvn -B test
+```
+
+`SeguridadE2ETest` verifica login, logout con sesión invalidada, la migración
+a BCrypt, la matriz de roles completa y los tres tipos de evento de bitácora.
+`CajaE2ETest` cubre el ciclo de caja y la cuenta del arqueo.
+
+Para probarlo a mano, con la aplicación en `http://localhost:8080`: entrá con
+cuentas de distinto rol y comprobá que el navbar cambia, que las rutas
+prohibidas llevan a `/403`, y que cambiar el `idTienda` en la URL de stock
+bajo o kardex es rechazado.
+
+## Antes de la entrega
+
+- Cambiar o eliminar las cuentas de demostración.
+- Quitar la compatibilidad con claves en texto plano una vez migradas todas.
+- No publicar contraseñas, tokens ni `application-local.properties`.

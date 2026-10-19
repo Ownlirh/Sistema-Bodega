@@ -1,217 +1,290 @@
-# Sistema de ventas para bodegas
+# Sistema de Ventas para Bodegas
 
-Proyecto del curso **Lenguaje de Programación II** — Cibertec, 2026.
+Aplicación web para la gestión de una cadena pequeña de bodegas: controla el
+inventario por tienda, el abastecimiento, los gastos operativos y entrega
+reportes de ventas y rentabilidad.
 
-Esta es la **base del proyecto**: base de datos, conexión, entidades JPA y
-repositorios. Está pensada para que cada integrante construya su parte encima
-sin pisarse con los demás.
-
-> **Estado: probado.** Compila (`BUILD SUCCESS`, 28 clases), la base carga y la
-> aplicación levanta conectada a MySQL. Verificado el 21/09/2026 en Windows 11
-> con JDK 17.0.20, Maven 3.9.9 y MySQL 8.4.9.
+El inventario es **por tienda, no global**, y toda operación que mueve stock
+queda registrada en un kardex con el saldo antes y después del movimiento.
 
 ---
 
-## 1. Arranque rápido (Windows)
+## Tabla de contenidos
 
-Cuatro comandos, en orden, desde PowerShell parado en la carpeta del proyecto.
+- [Funcionalidades](#funcionalidades)
+- [Tecnologías](#tecnologías)
+- [Arranque rápido con Docker](#arranque-rápido-con-docker)
+- [Despliegue](#despliegue)
+- [Instalación sin Docker](#instalación-sin-docker)
+- [Configuración](#configuración)
+- [Base de datos](#base-de-datos)
+- [Pruebas](#pruebas)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Estado y limitaciones](#estado-y-limitaciones)
+- [Desarrollo](#desarrollo)
 
-**Paso 1 — revisa qué te falta.** No instala nada, solo mira:
+---
 
-```bash
-.\scripts\verificar.ps1
+## Funcionalidades
+
+### Seguridad y control de acceso
+Autenticación por formulario con tres roles (administrador, manager y
+vendedor), protección CSRF y control de sesión. Cada usuario pertenece a una
+tienda y el sistema valida que no pueda consultar ni modificar datos de otra.
+Las claves se almacenan con BCrypt. Toda operación sensible queda en una
+bitácora de auditoría con usuario, acción, dirección IP y resultado.
+
+### Inventario y logística
+Stock por tienda, transferencias entre tiendas, ajustes por conteo físico y
+kardex con el saldo antes y después de cada movimiento. Alertas de productos
+agotados, por debajo del mínimo, vencidos y por vencer.
+
+### Abastecimiento
+Registro de compras a proveedores, que aumenta el stock y deja la entrada
+correspondiente en el kardex dentro de una sola transacción. Registro de
+gastos operativos por categoría.
+
+### Trazabilidad de lotes
+Los lotes identifican el stock existente con su código de envase y fecha de
+vencimiento. Las mermas descuentan el saldo del lote y el stock a la vez, con
+motivo y descripción. Al transferir mercadería, los lotes viajan con ella
+conservando código y vencimiento.
+
+### Caja diaria
+Apertura con monto inicial, registro de entradas y salidas de efectivo, y
+cierre con arqueo:
+
+```
+efectivo esperado = monto inicial + ventas del turno + entradas - salidas
+diferencia        = efectivo contado - efectivo esperado
 ```
 
-**Paso 2 — instala lo que falte.** Usa winget, así que no hay que buscar
-instaladores:
+### Reportes y panel de control
+Reporte de ventas exportable a PDF, rentabilidad por producto, y un panel de
+tendencias que cruza ingresos, egresos de mercadería y gastos operativos mes a
+mes para mostrar el margen.
 
-```bash
-.\scripts\instalar.ps1
-```
+### Clientes
+Mantenimiento de clientes con baja lógica.
 
-> Al terminar, **cierra la terminal y abre una nueva**. Windows no refresca el
-> PATH en ventanas que ya estaban abiertas.
->
-> El instalador de MySQL abre su propia ventana y te pide definir la clave de
-> root. **Anótala**, la necesitas en el paso siguiente.
+---
 
-**Paso 3 — arranca MySQL:**
+## Tecnologías
 
-```bash
-.\scripts\mysql-iniciar.ps1
-```
+| | |
+|---|---|
+| Lenguaje | Java 17 |
+| Framework | Spring Boot 3.3.5 (MVC, Data JPA, Security, Validation) |
+| Vistas | Thymeleaf |
+| Base de datos | MySQL 8 |
+| Reportes | JasperReports 6.21.3 |
+| Construcción | Maven |
+| Pruebas | JUnit 5, Mockito, Spring Test, H2 |
+| Contenedores | Docker y Docker Compose |
 
-**Paso 4 — crea la base de datos** con sus datos de prueba:
+---
 
-```bash
-.\scripts\setup-bd.ps1
-```
+## Arranque rápido con Docker
 
-**Paso 5 — levanta la aplicación:**
-
-```bash
-.\scripts\iniciar.ps1
-```
-
-Cuando veas `Started BodegaApplication`, abre <http://localhost:8080/health/db>.
-Si te devuelve los conteos de cada tabla, tu entorno está listo.
-
-Del día siguiente en adelante solo necesitas los pasos 3 y 5.
-
-### Qué se instala
-
-| Herramienta | Para qué | Cómo |
-|---|---|---|
-| JDK 17 | Compilar y ejecutar. Spring Boot 3 no corre con Java 11 | winget `EclipseAdoptium.Temurin.17.JDK` |
-| Maven 3.9.9 | Dependencias y build | Zip de Apache, **no está en winget** |
-| MySQL 8.4 | La base de datos | winget `Oracle.MySQL` |
-| Git | Control de versiones | winget `Git.Git` |
-
-### Dos cosas raras del entorno que conviene saber
-
-**MySQL corre como proceso, no como servicio.** El instalador silencioso solo
-copia archivos: no inicializa el servidor ni registra el servicio de Windows,
-porque eso pide permisos de administrador. Por eso existe
-`mysql-iniciar.ps1`, y por eso **hay que correrlo cada vez que reinicias la
-PC**. Si prefieres que arranque solo, al final de ese script están las dos
-líneas para registrarlo como servicio (necesitas PowerShell como
-administrador).
-
-**El usuario `root` local no tiene clave.** Es lo normal en un MySQL recién
-inicializado para desarrollo y es lo que espera la configuración por defecto.
-
-Si el tuyo sí tiene clave, **no edites `application.properties`**: ese archivo
-es de todo el equipo. Copia la plantilla y pon ahí tus datos:
-
-```bash
-Copy-Item application-local.properties.ejemplo application-local.properties
-```
-
-Descomenta las líneas que necesites y listo. Ese archivo está en `.gitignore`,
-así que es solo tuyo y nadie va a pisar tu configuración.
-
-Para los scripts, que van por fuera de Spring:
-
-```bash
-.\scripts\setup-bd.ps1 -ConClave
-```
-
-```bash
-.\scripts\iniciar.ps1 -Clave tu_clave
-```
-
-### Cómo se resuelven las credenciales
-
-De mayor a menor prioridad:
-
-| Orden | Origen | Para qué |
-|---|---|---|
-| 1 | `application-local.properties` | Tu configuración personal. No se comparte |
-| 2 | Variables de entorno `DB_USER` / `DB_PASSWORD` | Útil si prefieres no crear archivos |
-| 3 | `application.properties` | Los valores por defecto del equipo |
-
-Comprobado: con un `application-local.properties` que tenía una clave
-incorrecta, la aplicación falló con `Access denied`, lo que confirma que el
-archivo se lee y pisa lo demás. Al borrarlo, volvió a arrancar con los valores
-por defecto.
-
-Si usas VS Code, el script también le agrega las extensiones de Java y Spring
-Boot. Si prefieres IntelliJ IDEA Community:
-
-```bash
-winget install --id JetBrains.IntelliJIDEA.Community -e
-```
-
-### Alternativa: MySQL en Docker
-
-Si el instalador de MySQL te complica, hay un `docker-compose.yml` que levanta
-MySQL con la base ya cargada. Necesitas Docker Desktop, pero te ahorra
-configurar el servicio:
+**Requisito único:** Docker Desktop. No hace falta instalar Java, Maven ni
+MySQL.
 
 ```bash
 docker compose up -d
 ```
 
-Con eso te saltas el paso 3. La clave queda en `root` / `root`, que es lo que
-espera la configuración por defecto.
+Eso levanta dos contenedores:
 
-## 2. Si algo falla
+| Servicio | Qué es | Puerto |
+|---|---|---|
+| `app` | La aplicación | 8080 |
+| `mysql` | MySQL 8 con la base ya creada y poblada | 3306 |
 
-| Síntoma | Causa casi siempre |
-|---|---|
-| `java` o `mvn` no se reconoce | No abriste una terminal nueva después de instalar |
-| `Access denied for user 'root'@'localhost' (using password: YES)` | Le estás mandando clave a un root que no tiene. Usa `.\scripts\iniciar.ps1` sin `-Clave` |
-| `Communications link failure` | MySQL está apagado. `.\scripts\mysql-iniciar.ps1` |
-| `Unknown database 'bodegadb'` | Falta el paso 4 |
-| `Schema-validation: wrong column type` | Una entidad no coincide con su tabla. El mensaje dice exactamente qué columna. Arregla el script SQL **y** la entidad, y recarga con `setup-bd.ps1` |
-| `Unable to determine Dialect without JDBC metadata` | No es un problema de dialecto: es que no logró conectarse. Busca el error real más arriba en el log |
-| El puerto 8080 está ocupado | Cambia `server.port` en `application.properties` |
+La aplicación queda en <http://localhost:8080>. La primera ejecución tarda
+unos minutos porque compila el proyecto; las siguientes arrancan en segundos.
 
-## 3. Comprobar que quedó bien
+```bash
+docker compose logs -f app   # seguir el log
+docker compose down          # detener
+docker compose down -v       # detener y borrar la base
+```
 
-Dos rutas temporales para verificar el entorno sin depender del trabajo de los
-demás:
+### Modo desarrollo
 
-- <http://localhost:8080/health/db> — conteo de filas por tabla
-- <http://localhost:8080/health/relaciones> — prueba que el mapeo entre
-  entidades funciona
+Monta el código fuente dentro del contenedor y recompila al guardar:
 
-**Hay que borrar `HealthController` antes de la entrega final.** No es parte
-del sistema.
+```bash
+docker compose --profile dev up app-dev
+```
+
+El proyecto también incluye configuración de **Dev Container** para VS Code:
+`F1` → *Dev Containers: Reopen in Container* abre el editor dentro del
+contenedor, con Java 17 y Maven ya disponibles.
 
 ---
 
-## 4. Cómo está organizado
+## Despliegue
+
+El `Dockerfile` tiene tres etapas. La etapa `runtime` produce una imagen
+mínima, con solo el JRE y el JAR, apta para desplegar en cualquier servidor
+con Docker.
+
+```bash
+docker build --target runtime -t sistema-bodega:1.0 .
+```
+
+Para ejecutarla contra una base de datos externa, basta con pasarle las
+variables de entorno:
+
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL="jdbc:mysql://servidor:3306/bodegadb?useSSL=true&serverTimezone=America/Lima" \
+  -e DB_USER=usuario \
+  -e DB_PASSWORD=clave \
+  --name sistema-bodega \
+  sistema-bodega:1.0
+```
+
+La imagen no contiene credenciales: se resuelven en tiempo de ejecución. La
+base de datos debe existir y tener el esquema aplicado; ver
+[Base de datos](#base-de-datos).
+
+Para un despliegue con la base incluida, `docker compose up -d` sirve tal
+cual: el volumen `bodega-datos` persiste la información entre reinicios.
+
+---
+
+## Instalación sin Docker
+
+Para ejecutar el proyecto de forma nativa hacen falta JDK 17, Maven 3.9 y
+MySQL 8.
+
+En Windows hay scripts que automatizan el proceso con `winget`:
+
+```bash
+.\scripts\verificar.ps1      # informa qué falta, sin instalar nada
+.\scripts\instalar.ps1       # instala JDK 17, Maven, MySQL y Git
+.\scripts\mysql-iniciar.ps1  # arranca el servidor MySQL
+.\scripts\setup-bd.ps1       # crea la base y carga los datos de prueba
+.\scripts\iniciar.ps1        # levanta la aplicación
+```
+
+Después de instalar hay que abrir una terminal nueva: Windows no refresca el
+`PATH` en las que ya estaban abiertas.
+
+En otros sistemas, con las herramientas ya instaladas:
+
+```bash
+mysql -u root -p < db/01_script_bd.sql     # y el resto de scripts en orden
+mvn spring-boot:run
+```
+
+---
+
+## Configuración
+
+Las credenciales se resuelven en este orden de prioridad:
+
+| | Origen | Uso |
+|---|---|---|
+| 1 | `application-local.properties` | Configuración personal, no se versiona |
+| 2 | Variables de entorno | Despliegue y contenedores |
+| 3 | `application.properties` | Valores por defecto del proyecto |
+
+Variables reconocidas:
+
+| Variable | Por defecto |
+|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/bodegadb` |
+| `DB_USER` | `root` |
+| `DB_PASSWORD` | *(vacío)* |
+
+Para una configuración local, copiar la plantilla incluida:
+
+```bash
+cp application-local.properties.ejemplo application-local.properties
+```
+
+Ese archivo está en `.gitignore` y nunca se comparte.
+
+---
+
+## Base de datos
+
+El esquema se crea con los scripts de `db/`, que deben ejecutarse en orden:
+
+| Script | Contenido |
+|---|---|
+| `01_script_bd.sql` | Base, tablas principales y datos de prueba |
+| `02_datos_demo.sql` | Volumen de ventas, compras y gastos de demostración |
+| `03_inventario_logistica_tarea7.sql` | Kardex, transferencias y ajustes |
+| `04_inventario_sin_borrar.sql` | Versión no destructiva del anterior |
+| `05_lotes_mermas.sql` | Lotes y mermas |
+| `06_clientes.sql` | Clientes |
+| `06_seguridad_caja.sql` | Auditoría y caja diaria |
+
+Con Docker se aplican solos la primera vez que se crea el volumen.
+
+La aplicación corre con `spring.jpa.hibernate.ddl-auto=validate`: Hibernate
+**no** modifica el esquema, solo comprueba al arrancar que las entidades
+coinciden con las tablas. Si algo no calza, la aplicación falla de inmediato
+con un mensaje que indica la columna exacta, en lugar de alterar la base en
+silencio.
+
+---
+
+## Pruebas
+
+```bash
+docker compose --profile dev run --rm --no-deps app-dev mvn -B test
+```
+
+o, con Maven instalado, `mvn test`.
+
+**189 pruebas** en dos niveles:
+
+**Unidad y slice.** Lógica de servicio con Mockito y capa web con
+`@WebMvcTest`, rápidas y aisladas.
+
+**Integración de punta a punta.** `@SpringBootTest` que levanta la aplicación
+completa —controladores, servicios, repositorios, Hibernate y la cadena de
+filtros real de Spring Security— contra una base H2 en memoria que se vacía y
+se vuelve a poblar antes de cada prueba. Las consultas JPQL se ejecutan de
+verdad y la matriz de permisos se verifica ruta por ruta y rol por rol.
+
+Cada Pull Request dispara dos workflows de GitHub Actions: uno compila y
+publica el JAR como artifact, el otro ejecuta la suite y guarda los reportes.
+
+---
+
+## Estructura del proyecto
 
 ```
 src/main/java/pe/edu/cibertec/bodega/
-├── model/        13 entidades JPA               ← LISTO
-├── repository/   13 repositorios                ← LISTO
-├── controller/   Home + Health + DemoProducto   ← base y ejemplos
-├── service/      vacío                          ← integrantes 3 y 4
-└── config/       vacío                          ← integrante 3
+├── model/        22 entidades JPA
+├── repository/   22 repositorios Spring Data
+├── controller/   rutas y vistas
+├── service/      lógica de negocio y transacciones
+├── dto/          formularios y resultados de reporte
+└── security/     autenticación, roles y filtrado por tienda
 
 src/main/resources/
-├── application.properties                       ← LISTO
-├── static/css/estilos.css                       ← LISTO
-└── templates/
-    ├── fragments/comunes.html                   ← LISTO (cabecera, navbar, pie)
-    ├── index.html                               ← LISTO
-    └── demo/productos.html                      ← ejemplo a copiar
+├── templates/    vistas Thymeleaf, con fragmentos comunes
+├── static/css/   hoja de estilos
+└── reportes/     plantillas JasperReports (.jrxml)
 
-db/01_script_bd.sql                              ← LISTO
-scripts/*.ps1                                    ← LISTO
+src/test/java/pe/edu/cibertec/bodega/
+├── controller/   @WebMvcTest
+├── service/      pruebas de unidad
+└── e2e/          @SpringBootTest contra base real
+
+db/               scripts SQL
+scripts/          instalación y arranque nativos en Windows
+docs/             documentación por módulo
 ```
 
-### Cómo hacer una pantalla nueva
-
-Todas las pantallas usan los mismos tres fragmentos, así salen iguales sin que
-nadie tenga que ponerse de acuerdo en el diseño:
-
-```html
-<head th:replace="~{fragments/comunes :: cabecera('Mi titulo')}"></head>
-<body>
-<div th:replace="~{fragments/comunes :: navbar}"></div>
-<main class="contenedor">
-    <!-- tu contenido -->
-</main>
-<div th:replace="~{fragments/comunes :: pie}"></div>
-</body>
-```
-
-**Copien `templates/demo/productos.html` y `DemoProductoController.java`**: entre
-los dos muestran el camino completo de controlador a vista, con tabla, formato
-de decimales, etiquetas de estado y el caso de lista vacía.
-
-Las clases de CSS que ya existen: `panel`, `table.datos`, `boton`, `campo`,
-`tarjeta`, `etiqueta ok|alerta|error`, `aviso ok|alerta|error`. Si les falta
-algo, agréguenlo al final de `estilos.css`, en la sección COMPLEMENTOS.
-
-Si agregan un módulo, sumen su enlace al navbar en `fragments/comunes.html`.
-Las rutas ya están puestas ahí y apuntan a pantallas que todavía no existen
-(dan 404 hasta que las creen).
-
-### El modelo de datos
+### Modelo de datos
 
 ```
 Rol ──< Usuario >── Tienda
@@ -223,126 +296,54 @@ Categoria ──< Producto >── Proveedor
 Venta ──< VentaDetalle >── Producto        (ingresos)
 Compra ──< CompraDetalle >── Producto      (egresos de mercadería)
 Gasto ── CategoriaGasto                    (egresos operativos)
+Lote ──< Merma                             (vencimientos y pérdidas)
+Kardex                                     (historial de movimientos)
+Caja ──< CajaMovimiento                    (arqueo diario)
 ```
 
-Tres decisiones que conviene entender antes de tocar nada:
-
-**El stock es por tienda, no global.** `tb_stock` cruza producto × tienda. Una
-bodega puede tener 20 unidades de algo y otra ninguna.
-
-**`Producto` guarda precio de compra y precio de venta.** De su diferencia sale
-el margen que alimenta el reporte de rentabilidad y el panel. No quitar ninguno
-de los dos.
-
-**`Stock` tiene un campo `version` con `@Version`.** Es el bloqueo optimista de
-JPA y es lo que impide que dos cajas vendan la misma última unidad. No borrarlo.
+`Stock` lleva un campo `version` con `@Version`: es el bloqueo optimista que
+impide que dos cajas vendan simultáneamente la misma última unidad. Las
+operaciones que compiten por stock usan además bloqueo pesimista al leer la
+fila.
 
 ---
 
-## 5. Qué le toca a cada uno
+## Estado y limitaciones
 
-Somos 6. Cada requisito del checklist tiene un dueño único.
+El sistema está operativo y la suite completa pasa. Quedan tres puntos
+abiertos, documentados por transparencia:
 
-### Integrante 1 — arquitectura e infraestructura
-Ya entregó: proyecto base, entidades, repositorios, script SQL, scripts de
-instalación y el layout de Thymeleaf.
-Le queda: repositorio en GitHub, GitHub Actions y despliegue en Azure.
+- **Caja diaria:** la lógica de apertura, movimientos y arqueo está
+  implementada y cubierta por pruebas, pero falta la plantilla de la pantalla,
+  por lo que la ruta `/caja` no es accesible desde el navegador.
+- **Consulta de auditoría:** la bitácora se registra correctamente y existe su
+  plantilla, pero falta el controlador que la publique en
+  `/seguridad/auditoria`.
+- **Módulos en integración:** los mantenimientos de catálogo y el registro de
+  ventas están desarrollados en ramas que aún no se han integrado a `Dev`.
+  Hasta que se integren, los enlaces correspondientes del menú no resuelven.
 
-### Integrante 2 — coordinación y análisis
-El informe completo, los requisitos, los casos de uso y el diagnóstico SEPTE.
-También arma el video demo reel con las grabaciones de todos.
-Es mucho trabajo: la plantilla tiene doce secciones.
+Las pruebas de integración generan el esquema a partir de las entidades JPA,
+no de los scripts de `db/`, porque estos usan sintaxis específica de MySQL. La
+correspondencia entre entidades y esquema la valida `ddl-auto=validate` al
+arrancar contra MySQL.
 
-### Integrante 3 — seguridad, roles y sesiones
-Descomenta las dependencias de Spring Security en el `pom.xml` y crea la
-configuración en `config/`.
+---
 
-**Aviso al equipo antes de subir ese commit.** Apenas entre esa dependencia,
-Spring Security bloquea todas las rutas y nadie puede probar nada hasta que la
-configuración esté lista. Déjalo funcionando el mismo día.
+## Desarrollo
 
-Las claves en la base están en texto plano solo para poder probar: hay que
-reemplazarlas por hashes BCrypt. En `fragments/comunes.html` está marcado dónde
-va el nombre del usuario y cómo esconder enlaces por rol.
+La rama de integración es `Dev`. El trabajo se hace en ramas propias y se
+integra mediante Pull Request, que debe pasar los dos workflows de CI antes de
+fusionarse.
 
-Lo importante no es solo el login: es que **el manager de una tienda no vea los
-datos de otra**. Ese filtrado es lo que hace sólida la gestión de roles.
+Convenciones del proyecto:
 
-### Integrante 4 — el caso transaccional
-Crea `VentaService` en `service/` con un método `@Transactional`:
+- No modificar `spring.jpa.hibernate.ddl-auto`. Está en `validate` a propósito.
+- Un cambio de esquema va primero al script SQL y después a la entidad.
+- Las pantallas nuevas reutilizan los fragmentos de
+  `templates/fragments/comunes.html`, y sus enlaces en el menú llevan el
+  `sec:authorize` correspondiente a su rol.
 
-```java
-@Transactional
-public Venta registrarVenta(Venta venta, List<VentaDetalle> detalles) {
-    // 1. validar que el vendedor pertenece a esa tienda
-    // 2. por cada detalle:
-    //      stockRepo.findParaActualizar(idProducto, idTienda)  <-- con bloqueo
-    //      si cantidad < solicitado -> lanzar excepcion (rollback)
-    //      descontar y guardar
-    // 3. calcular total, guardar cabecera + detalle
-    // 4. si algo falla, la anotacion revierte todo
-}
-```
-
-Usa **siempre** `stockRepo.findParaActualizar(...)`, nunca el `findBy` normal.
-Ese lleva `PESSIMISTIC_WRITE` y es lo que evita la sobreventa.
-
-Para el video: dos navegadores vendiendo el mismo último producto a la vez. Uno
-debe fallar limpio, sin dejar el stock en negativo.
-
-### Integrante 5 — mantenimientos y consultas
-Tres CRUD (productos, empleados y tiendas, proveedores) y dos consultas.
-Los repositorios ya tienen todo lo que necesitas:
-
-| Necesitas | Método listo |
-|---|---|
-| Mantenimiento de productos | `ProductoRepository` completo |
-| Mantenimiento de empleados | `UsuarioRepository.findByTiendaIdTienda(...)` |
-| Mantenimiento de proveedores | `ProveedorRepository` completo |
-| Consulta de ventas | `VentaRepository.buscarPorFechaYTienda(...)` |
-| Consulta de stock bajo | `StockRepository.findStockBajo(...)` |
-
-Copia `demo/productos.html` para el listado y agrégale el formulario. Para las
-bajas usa el campo `estado`, no borres filas: hay claves foráneas que lo impiden.
-
-### Integrante 6 — reportes y panel
-Descomenta las dependencias de JasperReports en el `pom.xml`.
-
-| Necesitas | Método listo |
-|---|---|
-| Reporte de rentabilidad | `VentaDetalleRepository.rentabilidadPorProducto()` |
-| Panel: ingresos por mes | `VentaRepository.totalPorMes(...)` |
-| Panel: egresos por mes | `CompraRepository.totalPorMes(...)` + `GastoRepository.totalPorMes(...)` |
-| Panel: gastos por categoría | `GastoRepository.totalPorCategoria(...)` |
-| Panel: ventas por tienda | `VentaRepository.totalPorTienda()` |
-
-Devuelven `List<Object[]>`; cada fila trae los valores en el orden que indica el
-comentario del método.
-
-**Dependes del integrante 4**: sin ventas registradas no hay datos que graficar.
-Mientras tanto, diseña los `.jrxml` en Jaspersoft Studio con datos a mano.
-
-## 6. Reglas del repositorio
-
-- **Nadie trabaja sobre `main`.** Cada uno en su rama: `feature/mantenimientos`,
-  `feature/seguridad`, etc.
-- **Commits con tu propio usuario.** La plantilla exige evidencia de
-  participación por integrante y el historial de GitHub es lo más difícil de
-  improvisar a última hora.
-- **No cambies `spring.jpa.hibernate.ddl-auto` a `update`.** Está en `validate`
-  a propósito: si una entidad no coincide con su tabla, la app falla al arrancar
-  con un mensaje claro en vez de deformar la base de todos en silencio.
-- Si agregas una columna, va **primero al script SQL** y después a la entidad.
-
-## 7. Notas técnicas
-
-**Sobre el material del curso.** Los PDFs del Tema 1 usan `javax.persistence`
-con Java 11 y Hibernate 5 suelto. Este proyecto usa Spring Boot 3, que va con
-Java 17 y `jakarta.persistence`. Las anotaciones son exactamente las mismas
-(`@Entity`, `@Table`, `@Id`, `@ManyToOne`) — solo cambia el import. Si copian
-código de las diapositivas, cambien `javax` por `jakarta`.
-
-**Sobre la base de datos.** Está en MySQL porque es lo que usa el material del
-curso. Si prefieren SQL Server (ya está instalado en una de nuestras máquinas),
-el cambio son dos líneas: el driver en el `pom.xml` y la URL en
-`application.properties`. Pero decídanlo ahora, no a mitad del proyecto.
+El detalle del módulo de seguridad, con la matriz de permisos completa, está
+en [docs/SEGURIDAD-CONTROL-ACCESO.md](docs/SEGURIDAD-CONTROL-ACCESO.md). El
+reparto de módulos del equipo está en [docs/EQUIPO.md](docs/EQUIPO.md).
