@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/comunes :: cabecera('Panel de tendencias')}"></head>
+<body>
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+<main class="contenedor">
+
+<h1>Panel de tendencias</h1>
+<p class="subtitulo">Ingresos, egresos, gastos y margen mes a mes.</p>
+
+<div class="aviso error" th:if="${error != null}" role="alert" th:text="${error}"></div>
+
+<form class="panel" method="get" th:action="@{/panel}">
+    <div class="campo">
+        <label for="idTienda">Tienda</label>
+        <select id="idTienda" name="idTienda">
+            <option value="">Todas las tiendas</option>
+            <option th:each="t : ${tiendas}"
+                    th:value="${t.idTienda}"
+                    th:text="${t.nombre}"
+                    th:selected="${t.idTienda == idTiendaSeleccionada}"></option>
+        </select>
+    </div>
+    <button class="boton" type="submit">Ver panel</button>
+</form>
+
+<section th:if="${panel != null}">
+
+    <h2 th:text="${panel.tienda}">Tienda</h2>
+
+    <div class="tarjetas">
+        <div class="tarjeta">
+            <h3>Ingresos (S/)</h3>
+            <p class="cifra" th:text="${#numbers.formatDecimal(panel.ingresos,1,2)}">0.00</p>
+        </div>
+        <div class="tarjeta">
+            <h3>Mercadería (S/)</h3>
+            <p class="cifra" th:text="${#numbers.formatDecimal(panel.mercaderia,1,2)}">0.00</p>
+        </div>
+        <div class="tarjeta">
+            <h3>Gastos operativos (S/)</h3>
+            <p class="cifra" th:text="${#numbers.formatDecimal(panel.gastos,1,2)}">0.00</p>
+        </div>
+        <div class="tarjeta">
+            <h3>Margen (S/)</h3>
+            <p class="cifra"
+               th:classappend="${panel.margen.signum() < 0} ? ' cifra--negativa'"
+               th:text="${#numbers.formatDecimal(panel.margen,1,2)}">0.00</p>
+            <p class="subtitulo"
+               th:text="${panel.margenPorcentaje == null} ? 'Sin ingresos' : ${#numbers.formatDecimal(panel.margenPorcentaje,1,2)} + ' % de los ingresos'"></p>
+        </div>
+    </div>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Tendencia mes a mes                                                -->
+    <!-- ------------------------------------------------------------------ -->
+    <div class="panel" th:if="${panel.vacio}">
+        <p>Todavía no hay movimiento registrado. El panel se llena solo a medida
+           que se registren ventas, compras y gastos.</p>
+    </div>
+
+    <div class="panel" th:unless="${panel.vacio}">
+        <h3>Ingresos contra egresos, mes a mes</h3>
+        <p class="subtitulo">
+            Las barras están en proporción al mes más alto. Egresos = mercadería + gastos operativos.
+        </p>
+
+        <ul class="grafico">
+            <li th:each="m : ${panel.meses}">
+                <span class="grafico__mes" th:text="${m.etiqueta}">00/0000</span>
+                <span class="grafico__barras">
+                    <span class="grafico__barra grafico__barra--ingresos"
+                          th:style="'width:' + ${panel.ancho(m.ingresos)} + '%'"
+                          th:title="'Ingresos: S/ ' + ${#numbers.formatDecimal(m.ingresos,1,2)}"></span>
+                    <span class="grafico__barra grafico__barra--egresos"
+                          th:style="'width:' + ${panel.ancho(m.egresos)} + '%'"
+                          th:title="'Egresos: S/ ' + ${#numbers.formatDecimal(m.egresos,1,2)}"></span>
+                </span>
+            </li>
+        </ul>
+
+        <p class="leyenda">
+            <span class="leyenda__clave leyenda__clave--ingresos"></span> Ingresos
+            <span class="leyenda__clave leyenda__clave--egresos"></span> Egresos
+        </p>
+    </div>
+
+    <div class="panel" th:unless="${panel.vacio}" style="overflow-x:auto">
+        <table class="datos">
+            <thead>
+            <tr>
+                <th>Mes</th>
+                <th>Ingresos (S/)</th>
+                <th>Mercadería (S/)</th>
+                <th>Gastos (S/)</th>
+                <th>Margen (S/)</th>
+                <th>Margen</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${panel.meses}">
+                <td th:text="${m.etiqueta}">00/0000</td>
+                <td th:text="${#numbers.formatDecimal(m.ingresos,1,2)}">0.00</td>
+                <td th:text="${#numbers.formatDecimal(m.mercaderia,1,2)}">0.00</td>
+                <td th:text="${#numbers.formatDecimal(m.gastos,1,2)}">0.00</td>
+                <td th:text="${#numbers.formatDecimal(m.margen,1,2)}">0.00</td>
+                <td>
+                    <span class="etiqueta"
+                          th:classappend="${m.margenPorcentaje == null} ? '' : (${m.margen.signum() < 0} ? ' error' : ' ok')"
+                          th:text="${m.margenPorcentaje == null} ? 'N/D' : ${#numbers.formatDecimal(m.margenPorcentaje,1,2)} + ' %'">N/D</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- Participaciones                                                    -->
+    <!-- ------------------------------------------------------------------ -->
+    <div class="tarjetas">
+
+        <div class="panel">
+            <h3>En qué se va la plata</h3>
+            <p class="subtitulo">Gastos operativos por categoría.</p>
+            <p th:if="${#lists.isEmpty(panel.gastosPorCategoria)}">Sin gastos registrados.</p>
+            <ul class="grafico" th:unless="${#lists.isEmpty(panel.gastosPorCategoria)}">
+                <li th:each="r : ${panel.gastosPorCategoria}">
+                    <span class="grafico__mes" th:text="${r.nombre}">Categoría</span>
+                    <span class="grafico__barras">
+                        <span class="grafico__barra grafico__barra--gastos"
+                              th:style="'width:' + ${r.participacion} + '%'"></span>
+                    </span>
+                    <span class="grafico__valor"
+                          th:text="${#numbers.formatDecimal(r.total,1,2)} + ' (' + ${r.participacion} + ' %)'"></span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="panel">
+            <h3>Ventas por tienda</h3>
+            <p class="subtitulo">Comparativo entre todas las tiendas, sin aplicar el filtro de arriba.</p>
+            <p th:if="${#lists.isEmpty(panel.ventasPorTienda)}">Sin ventas registradas.</p>
+            <ul class="grafico" th:unless="${#lists.isEmpty(panel.ventasPorTienda)}">
+                <li th:each="r : ${panel.ventasPorTienda}">
+                    <span class="grafico__mes" th:text="${r.nombre}">Tienda</span>
+                    <span class="grafico__barras">
+                        <span class="grafico__barra grafico__barra--ingresos"
+                              th:style="'width:' + ${r.participacion} + '%'"></span>
+                    </span>
+                    <span class="grafico__valor"
+                          th:text="${#numbers.formatDecimal(r.total,1,2)} + ' (' + ${r.participacion} + ' %)'"></span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <p class="subtitulo">
+        Solo cuenta ventas y compras activas. El margen es de caja: ingresos menos
+        mercadería menos gastos operativos. No descuenta mermas ni depreciación.
+    </p>
+
+</section>
+
+</main>
+<div th:replace="~{fragments/comunes :: pie}"></div>
+</body>
+</html>

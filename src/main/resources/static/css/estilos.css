@@ -236,3 +236,104 @@ table.datos .num { text-align: right; font-variant-numeric: tabular-nums; }
     .reportes-nav { width: 100%; }
     .reportes-nav__enlace { width: 100%; }
 }
+
+/* Panel de tendencias (integrante 1).
+   Los graficos son barras en CSS: evita sumar una libreria de JS para
+   cuatro series, y se imprimen bien. */
+
+.grafico { list-style: none; margin: 16px 0 0; padding: 0; }
+
+.grafico li {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+}
+
+.grafico__mes {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-suave);
+    overflow-wrap: anywhere;
+}
+
+/* Las dos barras del mes van apiladas para poder compararlas de un vistazo. */
+.grafico__barras { display: flex; flex-direction: column; gap: 3px; }
+
+.grafico__barra {
+    display: block;
+    min-width: 2px;
+    height: 11px;
+    border-radius: 3px;
+}
+
+.grafico__barra--ingresos { background: var(--color-principal); }
+.grafico__barra--egresos  { background: var(--color-alerta); }
+.grafico__barra--gastos   { background: var(--color-oscuro); }
+
+.grafico__valor {
+    font-size: 13px;
+    color: var(--color-suave);
+    white-space: nowrap;
+}
+
+.leyenda {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--color-suave);
+}
+
+.leyenda__clave {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin: 0 4px 0 14px;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+.leyenda__clave--ingresos { background: var(--color-principal); margin-left: 0; }
+.leyenda__clave--egresos  { background: var(--color-alerta); }
+
+.cifra--negativa { color: var(--color-error); }
+
+@media (max-width: 540px) {
+    .grafico li { grid-template-columns: 70px 1fr; }
+    .grafico__valor { grid-column: 2; text-align: right; }
+}
+
+/* Zona de sesion del navbar: nombre, rol y cerrar sesion. Reemplaza al
+   antiguo .usuario, que era un texto fijo que decia "Sin sesion". */
+
+.navbar .sesion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.navbar .sesion__nombre { font-size: 13px; color: #a7b8cc; }
+
+.navbar .sesion .etiqueta {
+    background: rgba(255, 255, 255, .14);
+    color: #e6edf5;
+    border: 0;
+}
+
+.navbar .sesion form { margin: 0; }
+
+/* Boton discreto: en el navbar, el azul lleno competia con los enlaces. */
+.boton--sutil {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, .35);
+    color: #e6edf5;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.boton--sutil:hover { background: rgba(255, 255, 255, .12); }
+
+@media (max-width: 720px) {
+    .navbar .sesion { width: 100%; padding-bottom: 10px; }
+}
