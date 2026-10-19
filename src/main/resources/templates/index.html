@@ -1,6 +1,9 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/comunes :: cabecera('Inicio')}"></head>
+
 <body>
 
 <div th:replace="~{fragments/comunes :: navbar}"></div>
@@ -8,27 +11,34 @@
 <main class="contenedor">
 
     <h1>Sistema de ventas para bodegas</h1>
-    <p class="subtitulo">Proyecto del curso Lenguaje de Programacion II &middot; Cibertec 2026</p>
+    <p class="subtitulo">
+        Proyecto del curso Lenguaje de Programacion II &middot; Cibertec 2026
+    </p>
 
     <div class="aviso alerta">
-        <strong>Pantalla base.</strong> Existe para que el equipo tenga un punto de partida
-        comun. Cada integrante reemplaza su tarjeta con el modulo que le toca.
+        <strong>Bienvenido al sistema.</strong>
+        Desde esta pantalla puedes acceder a los módulos de mantenimiento,
+        ventas, inventario, reportes y clientes.
     </div>
 
     <h2>Estado de la base de datos</h2>
+
     <div class="tarjetas">
         <div class="tarjeta">
             <p>Tiendas</p>
             <div class="cifra" th:text="${tiendas}">0</div>
         </div>
+
         <div class="tarjeta">
             <p>Empleados</p>
             <div class="cifra" th:text="${usuarios}">0</div>
         </div>
+
         <div class="tarjeta">
             <p>Productos</p>
             <div class="cifra" th:text="${productos}">0</div>
         </div>
+
         <div class="tarjeta">
             <p>Ventas registradas</p>
             <div class="cifra" th:text="${ventas}">0</div>
@@ -36,31 +46,54 @@
     </div>
 
     <h2>Modulos del sistema</h2>
+
     <div class="tarjetas">
+
+        <!-- Integrante 5: mantenimientos -->
         <a class="tarjeta" th:href="@{/productos}">
             <h3>Mantenimientos</h3>
             <p>Productos, empleados y proveedores &middot; integrante 5</p>
         </a>
+
+        <!-- Integrante 5: consultas -->
         <a class="tarjeta" th:href="@{/consultas/ventas}">
             <h3>Consultas</h3>
             <p>Ventas por fecha y stock bajo minimo &middot; integrante 5</p>
         </a>
+
+        <!-- Integrante 4: ventas -->
         <a class="tarjeta" th:href="@{/venta/nueva}">
             <h3>Registrar venta</h3>
-            <p>El caso transaccional &middot; integrante 4</p>
+            <p>Registro de ventas &middot; integrante 4</p>
         </a>
+
+        <!-- Integrante 6: panel -->
         <a class="tarjeta" th:href="@{/panel}">
             <h3>Panel de tendencias</h3>
             <p>Ingresos, egresos, gastos y margen &middot; integrante 6</p>
         </a>
+
+        <!-- Integrante 6: reportes -->
         <a class="tarjeta" th:href="@{/reportes}">
             <h3>Reportes</h3>
             <p>Ventas y rentabilidad en PDF &middot; integrante 6</p>
         </a>
+
+        <!-- Integrante 2: clientes y credito -->
+        <a class="tarjeta" th:href="@{/clientes}">
+            <h3>Clientes y credito</h3>
+            <p>
+                Mantenimiento y consulta de clientes registrados.
+                Modulo de fiados, pagos y deudas en desarrollo.
+            </p>
+        </a>
+
+        <!-- Pantalla de referencia -->
         <a class="tarjeta" th:href="@{/demo/productos}">
             <h3>Ejemplo de pantalla</h3>
-            <p>Copien esta para armar las suyas</p>
+            <p>Referencia para crear nuevas pantallas</p>
         </a>
+
     </div>
 
 </main>
