@@ -1,0 +1,58 @@
+# ============================================================================
+# Verifica que el proyecto COMPILE en cada Pull Request.
+#
+# Es la red de seguridad minima del equipo. Nace de un problema real: el pom
+# tenia las dependencias de Spring Security comentadas mientras Dev ya traia
+# codigo que las usaba, asi que durante varios dias el proyecto no compilaba
+# para nadie y nadie se entero, porque se mergeaba sin que nada lo revisara.
+#
+# A partir de aca, un PR que no compile queda marcado en rojo antes de que
+# alguien lo mergee.
+#
+# No corre los tests a proposito: de eso se encarga tests.yml. Separarlos hace
+# que, cuando algo falla, se vea de un vistazo si fue la compilacion o una
+# prueba.
+# ============================================================================
+name: Build
+
+on:
+  pull_request:
+    branches: [Dev, main]
+  # Tambien al subir directo a Dev, por si alguien mergea sin PR.
+  push:
+    branches: [Dev]
+  # Permite dispararlo a mano desde la pestania Actions.
+  workflow_dispatch:
+
+jobs:
+  compilar:
+    name: Compilar el proyecto
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      # Java 17 porque Spring Boot 3 no corre con 11. Es la misma version que
+      # usa el Dockerfile, para que CI y las maquinas del equipo coincidan.
+      - name: Preparar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          # Cachea ~/.m2 entre corridas. JasperReports arrastra muchas
+          # dependencias y sin esto cada build se va varios minutos.
+          cache: maven
+
+      - name: Compilar y empaquetar
+        run: mvn -B clean package -DskipTests
+
+      # Deja el JAR descargable desde la pagina del PR. Util para probar un
+      # cambio sin tener que compilarlo en tu maquina.
+      - name: Guardar el JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: bodega-app-jar
+          path: target/bodega-app-*.jar
+          if-no-files-found: error
+          retention-days: 7
