@@ -11,6 +11,7 @@ queda registrada en un kardex con el saldo antes y después del movimiento.
 
 ## Tabla de contenidos
 
+- [Vistas](#vistas)
 - [Funcionalidades](#funcionalidades)
 - [Tecnologías](#tecnologías)
 - [Arranque rápido con Docker](#arranque-rápido-con-docker)
@@ -22,6 +23,25 @@ queda registrada en un kardex con el saldo antes y después del movimiento.
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Estado y limitaciones](#estado-y-limitaciones)
 - [Desarrollo](#desarrollo)
+
+---
+
+## Vistas
+
+**Panel de tendencias** — ingresos, egresos y margen mes a mes, con filtro por
+tienda.
+
+![Panel de tendencias](docs/img/panel.jpg)
+
+**Alertas de inventario** — productos agotados, por debajo del mínimo, y lotes
+vencidos o por vencer.
+
+![Alertas de inventario](docs/img/alertas.jpg)
+
+**Rentabilidad por producto** — ingresos, costo estimado y margen por
+producto, en un rango de fechas.
+
+![Rentabilidad por producto](docs/img/rentabilidad.jpg)
 
 ---
 
@@ -286,25 +306,41 @@ docs/             documentación por módulo
 
 ### Modelo de datos
 
-```
-Rol ──< Usuario >── Tienda
-                      │
-Categoria ──< Producto >── Proveedor
-                 │
-                 └──< Stock >── Tienda     (inventario POR tienda)
+```mermaid
+erDiagram
+    Rol        ||--o{ Usuario  : "clasifica"
+    Tienda     ||--o{ Usuario  : "emplea"
+    Categoria  ||--o{ Producto : "agrupa"
+    Proveedor  ||--o{ Producto : "provee"
+    Producto   ||--o{ Stock    : "existe como"
+    Tienda     ||--o{ Stock    : "almacena"
+    Producto   ||--o{ Lote     : "se identifica con"
+    Lote       ||--o{ Merma    : "se pierde en"
+    Producto   ||--o{ Kardex   : "registra movimiento en"
 
-Venta ──< VentaDetalle >── Producto        (ingresos)
-Compra ──< CompraDetalle >── Producto      (egresos de mercadería)
-Gasto ── CategoriaGasto                    (egresos operativos)
-Lote ──< Merma                             (vencimientos y pérdidas)
-Kardex                                     (historial de movimientos)
-Caja ──< CajaMovimiento                    (arqueo diario)
+    Stock {
+        int  cantidad
+        long version "bloqueo optimista"
+    }
+    Kardex {
+        string tipo
+        int    cantidad "positiva entra, negativa sale"
+        int    stockAntes
+        int    stockDespues
+    }
 ```
+
+El inventario es **por tienda**: `Stock` cruza producto × tienda. Toda
+operación que mueve stock deja una fila en `Kardex` con el saldo antes y
+después.
 
 `Stock` lleva un campo `version` con `@Version`: es el bloqueo optimista que
 impide que dos cajas vendan simultáneamente la misma última unidad. Las
 operaciones que compiten por stock usan además bloqueo pesimista al leer la
 fila.
+
+El modelo completo, los flujos de cada operación y las reglas de concurrencia
+están en [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 ---
 
@@ -344,6 +380,17 @@ Convenciones del proyecto:
   `templates/fragments/comunes.html`, y sus enlaces en el menú llevan el
   `sec:authorize` correspondiente a su rol.
 
-El detalle del módulo de seguridad, con la matriz de permisos completa, está
-en [docs/SEGURIDAD-CONTROL-ACCESO.md](docs/SEGURIDAD-CONTROL-ACCESO.md). El
-reparto de módulos del equipo está en [docs/EQUIPO.md](docs/EQUIPO.md).
+### Documentación
+
+| Documento | Contenido |
+|---|---|
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Modelo de datos, flujos de cada operación y reglas de concurrencia |
+| [docs/SEGURIDAD-CONTROL-ACCESO.md](docs/SEGURIDAD-CONTROL-ACCESO.md) | Roles, matriz de permisos, filtrado por tienda, caja y auditoría |
+| [docs/INVENTARIO-Y-LOGISTICA.md](docs/INVENTARIO-Y-LOGISTICA.md) | Kardex, transferencias, ajustes y alertas |
+| [docs/ABASTECIMIENTO-Y-REPORTES.md](docs/ABASTECIMIENTO-Y-REPORTES.md) | Compras, gastos, lotes, mermas y reportes |
+| [docs/EQUIPO.md](docs/EQUIPO.md) | Reparto de módulos y convenciones de trabajo |
+| [CHANGELOG.md](CHANGELOG.md) | Qué entró en cada integración |
+
+Antes de tocar código que mueva stock, conviene leer la sección de
+concurrencia de `ARQUITECTURA.md`: el orden en que se toman los bloqueos es un
+acuerdo del proyecto, no un detalle de implementación.
