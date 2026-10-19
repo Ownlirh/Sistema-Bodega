@@ -1,0 +1,33 @@
+# ============================================================================
+# Servicio extra para el Dev Container de VS Code.
+#
+# Se combina con el docker-compose.yml de la raiz (ver devcontainer.json), asi
+# que comparte la misma red: desde aqui la base se alcanza como "mysql".
+#
+# Este contenedor NO arranca la aplicacion solo: te deja adentro con Java 17 y
+# Maven listos para que corras "mvn spring-boot:run" desde la terminal de
+# VS Code. Nada de esto toca tu Windows.
+# ============================================================================
+
+services:
+  workspace:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - ..:/workspace:cached
+      - bodega-maven:/root/.m2
+    working_dir: /workspace
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bodegadb?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
+      DB_USER: root
+      DB_PASSWORD: root
+    # Mantiene el contenedor vivo; la app la arrancas tu desde la terminal.
+    command: sleep infinity
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  bodega-maven:

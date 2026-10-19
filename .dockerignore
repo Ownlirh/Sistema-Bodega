@@ -1,0 +1,11 @@
+# Lo que NO se copia al contexto de build de Docker.
+target/
+.git/
+.idea/
+.vscode/
+*.iml
+*.log
+application-local.properties
+docs/
+*.md
+!README.md

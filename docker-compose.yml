@@ -1,23 +1,25 @@
 # ============================================================================
-# ALTERNATIVA a instalar MySQL en tu PC.
+# Entorno completo del proyecto en contenedores: base de datos + aplicacion.
 #
-# Levanta MySQL 8 en un contenedor, con la base ya creada y los datos de
-# prueba cargados. Util si a alguien del equipo le complica el instalador
-# de MySQL, o si quiere borrar todo y empezar de cero sin desinstalar nada.
+# Lo unico que hay que tener instalado en la PC es Docker Desktop:
+#   winget install --id Docker.DockerDesktop -e
 #
-# Necesita Docker Desktop:   winget install --id Docker.DockerDesktop -e
+# Nada de JDK, ni Maven, ni MySQL en Windows. Todo vive en los contenedores y
+# se borra entero con un comando cuando ya no lo necesites.
 #
-#   Levantar:   docker compose up -d
-#   Ver logs:   docker compose logs -f mysql
-#   Apagar:     docker compose down
-#   Borrar todo y empezar de cero:   docker compose down -v
+#   Levantar todo:        docker compose up -d
+#   Ver logs de la app:   docker compose logs -f app
+#   Apagar:               docker compose down
+#   Borrar TODO y empezar de cero (incluye la base):  docker compose down -v
+#
+#   Modo desarrollo (recarga al guardar, sin reconstruir la imagen):
+#     docker compose --profile dev up app-dev
 #
 # El script de db/ se ejecuta SOLO la primera vez, cuando el volumen esta
-# vacio. Si cambias el script, hay que correr "docker compose down -v"
-# para que se vuelva a aplicar.
+# vacio. Si cambias un .sql, hay que correr "docker compose down -v" para que
+# se vuelva a aplicar.
 #
-# La clave queda en 'root' / 'root', que es la que espera
-# application.properties por defecto. Es solo para desarrollo local.
+# La clave de MySQL queda en 'root' / 'root'. Es solo para desarrollo local.
 # ============================================================================
 
 services:
@@ -40,5 +42,52 @@ services:
       timeout: 5s
       retries: 10
 
+  # --------------------------------------------------------------------------
+  # Aplicacion compilada. Es lo que arranca con "docker compose up -d".
+  # --------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      target: runtime
+    container_name: bodega-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # Dentro de la red de Docker, la base se llama "mysql", no "localhost".
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bodegadb?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
+      DB_USER: root
+      DB_PASSWORD: root
+    ports:
+      - "8080:8080"
+
+  # --------------------------------------------------------------------------
+  # Modo desarrollo: el codigo de la PC se monta dentro del contenedor y
+  # spring-boot-devtools recompila al guardar. No esta en el "up" normal;
+  # se levanta a proposito con:   docker compose --profile dev up app-dev
+  # --------------------------------------------------------------------------
+  app-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      target: dev
+    container_name: bodega-app-dev
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bodegadb?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
+      DB_USER: root
+      DB_PASSWORD: root
+    volumes:
+      - .:/app
+      # Las dependencias de Maven quedan en un volumen: no se vuelven a bajar
+      # en cada arranque y no ensucian la carpeta del proyecto.
+      - bodega-maven:/root/.m2
+    ports:
+      - "8080:8080"
+
 volumes:
   bodega-datos:
+  bodega-maven:
