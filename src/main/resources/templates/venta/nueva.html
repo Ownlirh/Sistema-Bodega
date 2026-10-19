@@ -1,0 +1,913 @@
+@'
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Nueva venta')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Nueva venta</h1>
+
+    <p class="subtitulo">
+        Registra una venta seleccionando productos, cantidades y revisando
+        el total antes de confirmar.
+    </p>
+
+    <!-- ERROR -->
+    <div th:if="${error}" class="panel">
+
+        <span class="etiqueta error"
+              th:text="${error}">
+            Error
+        </span>
+
+    </div>
+
+
+    <!-- DATOS DE LA VENTA -->
+    <div class="panel">
+
+        <h2>Datos de la venta</h2>
+
+        <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            align-items: end;
+        ">
+
+            <div style="min-width: 250px;">
+
+                <label for="idTienda">
+                    Tienda
+                </label>
+
+                <select id="idTienda"
+                        name="idTienda"
+                        form="formVenta"
+                        required
+                        style="width: 100%;">
+
+                    <option value="">
+                        Seleccione una tienda
+                    </option>
+
+                    <option th:each="tienda : ${tiendas}"
+                            th:value="${tienda.idTienda}"
+                            th:text="${tienda.nombre}">
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    Usuario
+                </label>
+
+                <div class="etiqueta ok">
+                    Usuario ID 1
+                </div>
+
+                <input type="hidden"
+                       id="idUsuario"
+                       name="idUsuario"
+                       value="1"
+                       form="formVenta">
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRODUCTOS -->
+    <div class="panel">
+
+        <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        ">
+
+            <div>
+
+                <h2>Productos</h2>
+
+                <p class="subtitulo">
+                    Selecciona productos y cantidades para la venta.
+                </p>
+
+            </div>
+
+            <button type="button"
+                    class="boton"
+                    onclick="agregarProducto()">
+                + Agregar producto
+            </button>
+
+        </div>
+
+
+        <div id="mensajeTienda"
+             class="panel"
+             style="display: none; margin-top: 15px;">
+
+            <span class="etiqueta">
+                Selecciona una tienda para consultar el stock disponible.
+            </span>
+
+        </div>
+
+
+        <table class="datos"
+               id="tablaProductos">
+
+            <thead>
+
+            <tr>
+                <th>Producto</th>
+                <th>Stock disponible</th>
+                <th class="num">Precio unitario</th>
+                <th>Cantidad</th>
+                <th class="num">Subtotal</th>
+                <th>Acción</th>
+            </tr>
+
+            </thead>
+
+
+            <tbody id="productosBody">
+
+            <tr class="fila-producto">
+
+                <td>
+
+                    <select name="idProducto"
+                            class="producto-select"
+                            form="formVenta"
+                            required
+                            onchange="actualizarFila(this)"
+                            style="width: 100%;">
+
+                        <option value="">
+                            Seleccione producto
+                        </option>
+
+                        <option th:each="producto : ${productos}"
+                                th:value="${producto.idProducto}"
+                                th:text="${producto.descripcion}"
+                                th:attr="data-precio=${producto.precioVenta}">
+                        </option>
+
+                    </select>
+
+                </td>
+
+
+                <td>
+
+                    <span class="stock etiqueta">
+                        Seleccione tienda
+                    </span>
+
+                </td>
+
+
+                <td class="num precio">
+
+                    S/
+                    <span>
+                        0.00
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <input type="number"
+                           name="cantidad"
+                           class="cantidad-input"
+                           form="formVenta"
+                           min="1"
+                           value="1"
+                           required
+                           oninput="actualizarFila(this)"
+                           style="width: 90px;">
+
+                </td>
+
+
+                <td class="num subtotal">
+
+                    S/
+                    <span>
+                        0.00
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <button type="button"
+                            class="boton"
+                            onclick="eliminarFila(this)">
+                        Quitar
+                    </button>
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+
+        <p id="sinProductos"
+           class="subtitulo"
+           style="display: none;">
+
+            Agrega al menos un producto para continuar.
+
+        </p>
+
+    </div>
+
+
+    <!-- RESUMEN -->
+    <div class="panel">
+
+        <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        ">
+
+            <div>
+
+                <h2>Resumen de la venta</h2>
+
+                <p class="subtitulo">
+                    Revisa cantidades y total antes de registrar.
+                </p>
+
+            </div>
+
+
+            <div style="text-align: right;">
+
+                <span class="subtitulo">
+                    Total
+                </span>
+
+                <h1 style="margin: 0;">
+
+                    S/
+                    <span id="totalVenta">
+                        0.00
+                    </span>
+
+                </h1>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ACCIONES -->
+    <div class="panel">
+
+        <div style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        ">
+
+            <button type="submit"
+                    class="boton"
+                    id="btnRegistrar"
+                    form="formVenta">
+                Registrar venta
+            </button>
+
+            <a th:href="@{/consultas/ventas}"
+               class="boton">
+                Cancelar
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- FORMULARIO -->
+    <form th:action="@{/venta/registrar}"
+          method="post"
+          id="formVenta">
+
+        <!-- Los campos se conectan mediante form="formVenta" -->
+
+    </form>
+
+</main>
+
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+
+<!-- PLANTILLA DE PRODUCTOS -->
+<select id="productoPlantilla"
+        style="display: none;">
+
+    <option value="">
+        Seleccione producto
+    </option>
+
+    <option th:each="producto : ${productos}"
+            th:value="${producto.idProducto}"
+            th:text="${producto.descripcion}"
+            th:attr="data-precio=${producto.precioVenta}">
+    </option>
+
+</select>
+
+
+<script>
+
+let stockPorProducto = {};
+
+
+/* ============================================================
+   CAMBIO DE TIENDA
+   ============================================================ */
+document.getElementById("idTienda")
+    .addEventListener("change", function () {
+
+        const idTienda = this.value;
+
+        if (!idTienda) {
+
+            stockPorProducto = {};
+
+            document.getElementById("mensajeTienda")
+                .style.display = "block";
+
+            actualizarTodosLosStocks();
+
+            return;
+        }
+
+        fetch(
+            "/venta/stock?idTienda=" +
+            encodeURIComponent(idTienda)
+        )
+        .then(function (response) {
+
+            if (!response.ok) {
+                throw new Error(
+                    "No se pudo obtener el stock."
+                );
+            }
+
+            return response.json();
+        })
+        .then(function (data) {
+
+            stockPorProducto = data;
+
+            document.getElementById("mensajeTienda")
+                .style.display = "none";
+
+            actualizarTodosLosStocks();
+
+        })
+        .catch(function (error) {
+
+            console.error(error);
+
+            stockPorProducto = {};
+
+            document.getElementById("mensajeTienda")
+                .style.display = "block";
+
+            actualizarTodosLosStocks();
+        });
+
+    });
+
+
+/* ============================================================
+   OBTENER PRECIO
+   ============================================================ */
+function obtenerPrecio(select) {
+
+    if (!select) {
+        return 0;
+    }
+
+    const opcion =
+        select.options[select.selectedIndex];
+
+    if (!opcion) {
+        return 0;
+    }
+
+    return parseFloat(
+        opcion.getAttribute("data-precio")
+    ) || 0;
+}
+
+
+/* ============================================================
+   OBTENER STOCK
+   ============================================================ */
+function obtenerStock(idProducto) {
+
+    if (!idProducto) {
+        return 0;
+    }
+
+    return Number(
+        stockPorProducto[idProducto] || 0
+    );
+}
+
+
+/* ============================================================
+   ACTUALIZAR FILA
+   ============================================================ */
+function actualizarFila(elemento) {
+
+    const fila =
+        elemento.closest(".fila-producto");
+
+    if (!fila) {
+        return;
+    }
+
+    const select =
+        fila.querySelector(".producto-select");
+
+    const cantidadInput =
+        fila.querySelector(".cantidad-input");
+
+    const precioSpan =
+        fila.querySelector(".precio span");
+
+    const subtotalSpan =
+        fila.querySelector(".subtotal span");
+
+    const stockSpan =
+        fila.querySelector(".stock");
+
+
+    const precio =
+        obtenerPrecio(select);
+
+    const idProducto =
+        select.value;
+
+    const stock =
+        obtenerStock(idProducto);
+
+    let cantidad =
+        parseInt(cantidadInput.value) || 0;
+
+
+    precioSpan.textContent =
+        precio.toFixed(2);
+
+
+    if (!idProducto) {
+
+        stockSpan.textContent =
+            "Seleccione producto";
+
+        stockSpan.className =
+            "stock etiqueta";
+
+        cantidadInput.removeAttribute("max");
+
+        subtotalSpan.textContent =
+            "0.00";
+
+        actualizarTotal();
+
+        return;
+    }
+
+
+    if (!document.getElementById("idTienda").value) {
+
+        stockSpan.textContent =
+            "Seleccione tienda";
+
+        stockSpan.className =
+            "stock etiqueta";
+
+    } else {
+
+        stockSpan.textContent =
+            "Disponible: " + stock;
+
+        /*
+         * IMPORTANTE:
+         * Conservamos la clase stock para que
+         * las siguientes actualizaciones encuentren
+         * este elemento correctamente.
+         */
+        stockSpan.className =
+            stock > 0
+                ? "stock etiqueta ok"
+                : "stock etiqueta error";
+    }
+
+
+    if (stock > 0) {
+
+        cantidadInput.max =
+            stock;
+
+        if (cantidad > stock) {
+
+            cantidad =
+                stock;
+
+            cantidadInput.value =
+                stock;
+        }
+
+    } else {
+
+        cantidadInput.removeAttribute("max");
+    }
+
+
+    const subtotal =
+        precio * cantidad;
+
+
+    subtotalSpan.textContent =
+        subtotal.toFixed(2);
+
+
+    actualizarTotal();
+
+}
+
+
+/* ============================================================
+   ACTUALIZAR TODAS LAS FILAS
+   ============================================================ */
+function actualizarTodosLosStocks() {
+
+    document
+        .querySelectorAll(".fila-producto")
+        .forEach(function (fila) {
+
+            const select =
+                fila.querySelector(
+                    ".producto-select"
+                );
+
+            actualizarFila(select);
+
+        });
+
+}
+
+
+/* ============================================================
+   TOTAL
+   ============================================================ */
+function actualizarTotal() {
+
+    let total = 0;
+
+    document
+        .querySelectorAll(".subtotal span")
+        .forEach(function (elemento) {
+
+            total +=
+                parseFloat(
+                    elemento.textContent
+                ) || 0;
+
+        });
+
+    document.getElementById("totalVenta")
+        .textContent =
+        total.toFixed(2);
+
+}
+
+
+/* ============================================================
+   AGREGAR PRODUCTO
+   ============================================================ */
+function agregarProducto() {
+
+    const body =
+        document.getElementById(
+            "productosBody"
+        );
+
+    const plantilla =
+        document.getElementById(
+            "productoPlantilla"
+        );
+
+
+    const fila =
+        document.createElement("tr");
+
+    fila.className =
+        "fila-producto";
+
+
+    fila.innerHTML = `
+        <td>
+
+            <select name="idProducto"
+                    class="producto-select"
+                    form="formVenta"
+                    required
+                    onchange="actualizarFila(this)"
+                    style="width: 100%;">
+
+                ${plantilla.innerHTML}
+
+            </select>
+
+        </td>
+
+        <td>
+
+            <span class="stock etiqueta">
+                Seleccione producto
+            </span>
+
+        </td>
+
+        <td class="num precio">
+
+            S/
+            <span>
+                0.00
+            </span>
+
+        </td>
+
+        <td>
+
+            <input type="number"
+                   name="cantidad"
+                   class="cantidad-input"
+                   form="formVenta"
+                   min="1"
+                   value="1"
+                   required
+                   oninput="actualizarFila(this)"
+                   style="width: 90px;">
+
+        </td>
+
+        <td class="num subtotal">
+
+            S/
+            <span>
+                0.00
+            </span>
+
+        </td>
+
+        <td>
+
+            <button type="button"
+                    class="boton"
+                    onclick="eliminarFila(this)">
+                Quitar
+            </button>
+
+        </td>
+    `;
+
+
+    body.appendChild(fila);
+
+    revisarFilas();
+
+}
+
+
+/* ============================================================
+   ELIMINAR FILA
+   ============================================================ */
+function eliminarFila(boton) {
+
+    const fila =
+        boton.closest(
+            ".fila-producto"
+        );
+
+    if (!fila) {
+        return;
+    }
+
+    fila.remove();
+
+    revisarFilas();
+
+    actualizarTotal();
+
+}
+
+
+/* ============================================================
+   REVISAR FILAS
+   ============================================================ */
+function revisarFilas() {
+
+    const filas =
+        document.querySelectorAll(
+            ".fila-producto"
+        );
+
+    const mensaje =
+        document.getElementById(
+            "sinProductos"
+        );
+
+    mensaje.style.display =
+        filas.length === 0
+            ? "block"
+            : "none";
+
+}
+
+
+/* ============================================================
+   VALIDAR FORMULARIO
+   ============================================================ */
+document.getElementById("formVenta")
+    .addEventListener(
+        "submit",
+        function (event) {
+
+            const tienda =
+                document.getElementById(
+                    "idTienda"
+                ).value;
+
+
+            if (!tienda) {
+
+                event.preventDefault();
+
+                alert(
+                    "Debe seleccionar una tienda."
+                );
+
+                return;
+            }
+
+
+            const filas =
+                document.querySelectorAll(
+                    ".fila-producto"
+                );
+
+
+            if (filas.length === 0) {
+
+                event.preventDefault();
+
+                alert(
+                    "Debe agregar al menos un producto."
+                );
+
+                return;
+            }
+
+
+            let valido = true;
+
+
+            filas.forEach(
+                function (fila) {
+
+                    if (!valido) {
+                        return;
+                    }
+
+
+                    const select =
+                        fila.querySelector(
+                            ".producto-select"
+                        );
+
+                    const cantidadInput =
+                        fila.querySelector(
+                            ".cantidad-input"
+                        );
+
+
+                    const idProducto =
+                        select.value;
+
+                    const cantidad =
+                        parseInt(
+                            cantidadInput.value
+                        ) || 0;
+
+                    const stock =
+                        obtenerStock(
+                            idProducto
+                        );
+
+
+                    if (!idProducto) {
+
+                        valido = false;
+
+                        alert(
+                            "Debe seleccionar todos los productos."
+                        );
+
+                        return;
+                    }
+
+
+                    if (cantidad <= 0) {
+
+                        valido = false;
+
+                        alert(
+                            "La cantidad debe ser mayor a cero."
+                        );
+
+                        return;
+                    }
+
+
+                    if (cantidad > stock) {
+
+                        valido = false;
+
+                        alert(
+                            "La cantidad solicitada supera el stock disponible."
+                        );
+
+                    }
+
+                }
+            );
+
+
+            if (!valido) {
+
+                event.preventDefault();
+
+            }
+
+        }
+    );
+
+
+/* ============================================================
+   INICIO
+   ============================================================ */
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        revisarFilas();
+
+        actualizarTotal();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
+'@ | Set-Content .\src\main\resources\templates\venta\nueva.html -Encoding UTF8

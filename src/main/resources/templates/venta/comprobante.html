@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Comprobante de venta')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <div class="panel comprobante">
+
+        <div style="text-align: center;">
+
+            <h1>Comprobante de venta</h1>
+
+            <p class="subtitulo">
+                Venta N.°
+                <strong th:text="${venta.idVenta}">1</strong>
+            </p>
+
+        </div>
+
+        <hr>
+
+        <p>
+            <strong>Fecha:</strong>
+            <span th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy HH:mm')}">
+                26/09/2026 01:00
+            </span>
+        </p>
+
+        <p>
+            <strong>Tienda:</strong>
+            <span th:text="${venta.tienda.nombre}">
+                Tienda
+            </span>
+        </p>
+
+        <p>
+            <strong>Usuario:</strong>
+            <span th:text="${venta.usuario.nombreCompleto}">
+                Usuario
+            </span>
+        </p>
+
+        <hr>
+
+        <table class="datos">
+
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th class="num">Precio</th>
+                <th class="num">Subtotal</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <tr th:each="detalle : ${detalles}">
+
+                <td th:text="${detalle.producto.descripcion}">
+                    Producto
+                </td>
+
+                <td th:text="${detalle.cantidad}">
+                    1
+                </td>
+
+                <td class="num"
+                    th:text="${#numbers.formatDecimal(detalle.precioUnitario, 1, 2)}">
+                    0.00
+                </td>
+
+                <td class="num"
+                    th:text="${#numbers.formatDecimal(detalle.subtotal, 1, 2)}">
+                    0.00
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+        <hr>
+
+        <div style="display: flex; justify-content: flex-end;">
+
+            <h2>
+                Total: S/
+                <span th:text="${#numbers.formatDecimal(venta.total, 1, 2)}">
+                    0.00
+                </span>
+            </h2>
+
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <div style="
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        ">
+
+            <button type="button"
+                    class="boton"
+                    onclick="window.print()">
+                Imprimir
+            </button>
+
+            <a class="boton"
+               th:href="@{/consultas/ventas}">
+                Volver
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+<script th:if="${autoPrint}">
+    window.addEventListener('load', function () {
+        window.print();
+    });
+</script>
+
+<style>
+
+@media print {
+
+    body > * {
+        display: none !important;
+    }
+
+    main.contenedor {
+        display: block !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    .comprobante {
+        display: block !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .comprobante + .panel {
+        display: none !important;
+    }
+
+}
+
+</style>
+
+</body>
+</html>
