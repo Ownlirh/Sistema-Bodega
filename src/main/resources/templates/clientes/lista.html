@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Clientes')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+    <div class="panel">
+
+        <h1>Clientes</h1>
+        <p>Listado y mantenimiento de clientes registrados.</p>
+
+        <p th:if="${mensaje}"
+           th:text="${mensaje}"></p>
+
+        <p th:if="${error}"
+           th:text="${error}"></p>
+
+        <p>
+            <a th:href="@{/clientes/nuevo}" class="boton">
+                Nuevo cliente
+            </a>
+        </p>
+
+        <table class="datos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>DNI</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="cliente : ${clientes}">
+                    <td th:text="${cliente.idCliente}"></td>
+                    <td th:text="${cliente.nombres}"></td>
+                    <td th:text="${cliente.apellidos}"></td>
+                    <td th:text="${cliente.dni}"></td>
+                    <td th:text="${cliente.telefono}"></td>
+                    <td th:text="${cliente.direccion}"></td>
+
+                    <td th:text="${cliente.estado ? 'Activo' : 'Inactivo'}"></td>
+
+                    <td>
+                        <a th:href="@{/clientes/editar/{id}(id=${cliente.idCliente})}"
+                           class="boton">
+                            Editar
+                        </a>
+
+                        <form th:action="@{/clientes/{id}/estado(id=${cliente.idCliente})}"
+                              method="post"
+                              style="display:inline;"
+                              onsubmit="return confirm('¿Deseas cambiar el estado de este cliente?');">
+
+                            <input type="hidden"
+                                   name="estado"
+                                   th:value="${!cliente.estado}">
+
+                            <button type="submit"
+                                    class="boton"
+                                    th:text="${cliente.estado ? 'Desactivar' : 'Activar'}">
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(clientes)}">
+                    <td colspan="8">Todavía no hay clientes registrados.</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>

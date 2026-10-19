@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Formulario de cliente')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+    <div class="panel">
+
+        <h1 th:text="${cliente.idCliente == null
+                ? 'Nuevo cliente'
+                : 'Editar cliente'}">
+            Nuevo cliente
+        </h1>
+
+        <form th:action="@{/clientes/guardar}"
+              th:object="${cliente}"
+              method="post">
+
+            <input type="hidden" th:field="*{idCliente}">
+
+            <div class="campo">
+                <label for="nombres">Nombres</label>
+                <input id="nombres"
+                       type="text"
+                       th:field="*{nombres}"
+                       required>
+            </div>
+
+            <div class="campo">
+                <label for="apellidos">Apellidos</label>
+                <input id="apellidos"
+                       type="text"
+                       th:field="*{apellidos}"
+                       required>
+            </div>
+
+            <div class="campo">
+                <label for="dni">DNI</label>
+                <input id="dni"
+                       type="text"
+                       th:field="*{dni}"
+                       maxlength="8">
+            </div>
+
+            <div class="campo">
+                <label for="telefono">Teléfono</label>
+                <input id="telefono"
+                       type="text"
+                       th:field="*{telefono}"
+                       maxlength="15">
+            </div>
+
+            <div class="campo">
+                <label for="direccion">Dirección</label>
+                <input id="direccion"
+                       type="text"
+                       th:field="*{direccion}"
+                       maxlength="120">
+            </div>
+
+            <button type="submit"
+                    class="boton"
+                    th:text="${cliente.idCliente == null
+                        ? 'Guardar cliente'
+                        : 'Actualizar cliente'}">
+                Guardar cliente
+            </button>
+
+            <a th:href="@{/clientes}" class="boton">
+                Cancelar
+            </a>
+
+        </form>
+
+    </div>
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
