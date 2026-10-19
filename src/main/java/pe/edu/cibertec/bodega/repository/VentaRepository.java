@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pe.edu.cibertec.bodega.model.Venta;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -52,4 +53,20 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
          + "GROUP BY v.tienda.nombre "
          + "ORDER BY SUM(v.total) DESC")
     List<Object[]> totalPorTienda();
+
+    /**
+     * CAJA: total vendido en una tienda durante el turno, entre la apertura y
+     * el cierre. El arqueo lo usa para calcular el efectivo esperado.
+     *
+     * Devuelve null si no hubo ventas en el rango; CajaService lo convierte a
+     * cero. Solo cuenta ventas activas: una venta anulada no debe sumar al
+     * efectivo que se espera encontrar en la caja.
+     */
+    @Query("SELECT SUM(v.total) FROM Venta v "
+         + "WHERE v.estado = true "
+         + "AND v.tienda.idTienda = :idTienda "
+         + "AND v.fecha >= :desde AND v.fecha <= :hasta")
+    BigDecimal totalVentasCaja(@Param("idTienda") Integer idTienda,
+                               @Param("desde") LocalDateTime desde,
+                               @Param("hasta") LocalDateTime hasta);
 }

@@ -15,6 +15,8 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CompraController.class)
@@ -35,13 +37,13 @@ class CompraControllerTest {
         when(tiendas.findByEstadoTrue()).thenReturn(List.of(t));
     }
     @Test void muestraFormularioConCatalogos() throws Exception {
-        mvc.perform(get("/compras")).andExpect(status().isOk())
+        mvc.perform(get("/compras").with(user(TestSecurityUsers.admin()))).andExpect(status().isOk())
             .andExpect(content().string(containsString("Proveedor prueba")))
             .andExpect(content().string(containsString("Arroz")))
             .andExpect(content().string(containsString("lineas[0].cantidad")));
     }
     @Test void rechazaFormularioInvalidoSinGuardar() throws Exception {
-        mvc.perform(post("/compras").param("idProveedor", "1").param("idTienda", "1")
+        mvc.perform(post("/compras").with(user(TestSecurityUsers.admin())).with(csrf()).param("idProveedor", "1").param("idTienda", "1")
             .param("lineas[0].idProducto", "1").param("lineas[0].cantidad", "0")
             .param("lineas[0].costo", "3.25"))
             .andExpect(status().isOk()).andExpect(model().attributeHasErrors("compraForm"));
@@ -50,7 +52,7 @@ class CompraControllerTest {
     @Test void redirigeDespuesDeGuardar() throws Exception {
         Compra c = new Compra(); c.setIdCompra(8);
         when(servicio.registrar(any(), eq(1))).thenReturn(c);
-        mvc.perform(post("/compras").param("idProveedor", "1").param("idTienda", "1")
+        mvc.perform(post("/compras").with(user(TestSecurityUsers.admin())).with(csrf()).param("idProveedor", "1").param("idTienda", "1")
             .param("lineas[0].idProducto", "1").param("lineas[0].cantidad", "2")
             .param("lineas[0].costo", "3.25"))
             .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/compras"))
