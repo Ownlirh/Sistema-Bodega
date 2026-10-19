@@ -302,3 +302,38 @@ table.datos .num { text-align: right; font-variant-numeric: tabular-nums; }
     .grafico li { grid-template-columns: 70px 1fr; }
     .grafico__valor { grid-column: 2; text-align: right; }
 }
+
+/* Zona de sesion del navbar: nombre, rol y cerrar sesion. Reemplaza al
+   antiguo .usuario, que era un texto fijo que decia "Sin sesion". */
+
+.navbar .sesion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.navbar .sesion__nombre { font-size: 13px; color: #a7b8cc; }
+
+.navbar .sesion .etiqueta {
+    background: rgba(255, 255, 255, .14);
+    color: #e6edf5;
+    border: 0;
+}
+
+.navbar .sesion form { margin: 0; }
+
+/* Boton discreto: en el navbar, el azul lleno competia con los enlaces. */
+.boton--sutil {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, .35);
+    color: #e6edf5;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.boton--sutil:hover { background: rgba(255, 255, 255, .12); }
+
+@media (max-width: 720px) {
+    .navbar .sesion { width: 100%; padding-bottom: 10px; }
+}

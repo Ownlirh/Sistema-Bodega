@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <!--
 ============================================================================
 FRAGMENTOS COMUNES - la base visual de todo el sistema.
@@ -33,47 +34,62 @@ Si agregan un modulo, sumen su enlace al navbar de abajo.
     <header class="navbar">
         <a class="marca" th:href="@{/}">Sistema de Bodegas</a>
 
+        <!--
+          Los enlaces se esconden segun el rol, siguiendo la misma matriz que
+          SecurityConfig. Si cambia una regla alla, hay que cambiarla aqui.
+
+          Esconder el enlace NO es la proteccion: la proteccion real la hace
+          SecurityConfig en el servidor. Esto solo evita mostrarle a alguien
+          una puerta que le va a dar 403.
+
+          Los enlaces sin sec:authorize los ve cualquiera que haya iniciado
+          sesion, porque SecurityConfig los deja en anyRequest().authenticated().
+        -->
         <nav>
             <a th:href="@{/}">Inicio</a>
 
             <!-- Integrante 5: mantenimientos y consultas -->
             <a th:href="@{/productos}">Productos</a>
-            <a th:href="@{/empleados}">Empleados</a>
+            <a sec:authorize="hasRole('ADMINISTRADOR')" th:href="@{/empleados}">Empleados</a>
             <a th:href="@{/proveedores}">Proveedores</a>
 
             <!-- Integrante 2: clientes y credito -->
             <a th:href="@{/clientes}">Clientes</a>
 
             <a th:href="@{/consultas/ventas}">Ventas</a>
-            <a th:href="@{/inventario/stock-bajo}">Stock</a>
 
             <!-- Integrante 4: caso transaccional -->
             <a th:href="@{/venta/nueva}">Nueva venta</a>
 
             <!-- Integrante 6: reportes y panel -->
-            <a th:href="@{/panel}">Panel</a>
-            <a th:href="@{/reportes}">Reportes</a>
-            <a th:href="@{/compras}">Compras</a>
-            <a th:href="@{/gastos}">Gastos</a>
-            <a th:href="@{/vencimientos}">Vencimientos</a>
-            <a th:href="@{/mermas}">Mermas</a>
+            <a sec:authorize="hasRole('ADMINISTRADOR')" th:href="@{/panel}">Panel</a>
+            <a sec:authorize="hasRole('ADMINISTRADOR')" th:href="@{/reportes}">Reportes</a>
+            <a sec:authorize="hasAnyRole('ADMINISTRADOR','MANAGER')" th:href="@{/compras}">Compras</a>
+            <a sec:authorize="hasAnyRole('ADMINISTRADOR','MANAGER')" th:href="@{/gastos}">Gastos</a>
+            <a sec:authorize="hasAnyRole('ADMINISTRADOR','MANAGER')" th:href="@{/vencimientos}">Vencimientos</a>
+            <a sec:authorize="hasAnyRole('ADMINISTRADOR','MANAGER')" th:href="@{/mermas}">Mermas</a>
 
             <!-- Integrante 7: inventario y logistica -->
-            <a th:href="@{/transferencias}">Transferencias</a>
+            <a sec:authorize="hasRole('ADMINISTRADOR')" th:href="@{/transferencias}">Transferencias</a>
             <a th:href="@{/kardex}">Kardex</a>
-            <a th:href="@{/ajustes}">Ajustes</a>
+            <a sec:authorize="hasAnyRole('ADMINISTRADOR','MANAGER')" th:href="@{/ajustes}">Ajustes</a>
             <a th:href="@{/inventario/stock-bajo}">Stock bajo</a>
             <a th:href="@{/alertas}">Alertas</a>
         </nav>
 
         <!--
-          Integrante 3: cuando montes Spring Security, reemplaza este texto fijo
-          por el usuario real. Con thymeleaf-extras-springsecurity6 seria:
-              <span sec:authentication="name"></span>
-          y los enlaces del navbar se esconden por rol con:
-              <a sec:authorize="hasRole('ADMINISTRADOR')" ...>
+          Datos de la sesion. Vienen de SesionModelAdvice (integrante 3), que
+          los deja en el modelo de todas las pantallas.
         -->
-        <span class="usuario">Sin sesion</span>
+        <div class="sesion" sec:authorize="isAuthenticated()">
+            <span class="sesion__nombre" th:text="${usuarioSesion}">Usuario</span>
+            <span class="etiqueta" th:text="${rolSesion}">ROL</span>
+            <!-- El logout va por POST: CSRF esta activo y Thymeleaf agrega el
+                 token solo gracias al th:action. -->
+            <form method="post" th:action="@{/logout}">
+                <button class="boton boton--sutil" type="submit">Cerrar sesión</button>
+            </form>
+        </div>
     </header>
 </div>
 
