@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Fiados')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Fiados y deudas</h1>
+
+    <p class="subtitulo">
+        Consulta las deudas registradas de los clientes.
+    </p>
+
+    <!-- Mensaje de confirmacion -->
+    <div class="aviso" th:if="${mensaje}" th:text="${mensaje}"></div>
+
+    <!-- Mensaje de error -->
+    <div class="aviso alerta" th:if="${error}" th:text="${error}"></div>
+
+    <div class="acciones">
+        <a class="boton" th:href="@{/fiados/nuevo}">
+            Registrar nuevo fiado
+        </a>
+
+        <a class="boton" th:href="@{/clientes}">
+            Volver a clientes
+        </a>
+    </div>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Descripcion</th>
+                    <th>Fecha</th>
+                    <th>Monto inicial</th>
+                    <th>Saldo pendiente</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:if="${#lists.isEmpty(fiados)}">
+                    <td colspan="8">
+                        Todavia no hay fiados registrados.
+                    </td>
+                </tr>
+
+                <tr th:each="fiado : ${fiados}">
+                    <td th:text="${fiado.idFiado}">1</td>
+
+                    <td>
+                        <span th:text="${fiado.cliente.nombres}">Nombres</span>
+                        <span th:text="${fiado.cliente.apellidos}">Apellidos</span>
+                    </td>
+
+                    <td th:text="${fiado.descripcion}">Compra a credito</td>
+
+                    <td th:text="${#temporals.format(fiado.fecha, 'dd/MM/yyyy HH:mm')}">
+                        Fecha
+                    </td>
+
+                    <td>
+                        S/
+                        <span th:text="${#numbers.formatDecimal(fiado.montoInicial, 1, 2)}">
+                            0.00
+                        </span>
+                    </td>
+
+                    <td>
+                        S/
+                        <span th:text="${#numbers.formatDecimal(fiado.saldoPendiente, 1, 2)}">
+                            0.00
+                        </span>
+                    </td>
+
+                    <td th:text="${fiado.estado}">PENDIENTE</td>
+
+                    <td>
+                        <a th:href="@{/fiados/{idFiado}/pagos(idFiado=${fiado.idFiado})}">
+                            Ver pagos
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
