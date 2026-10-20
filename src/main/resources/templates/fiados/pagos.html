@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/comunes :: cabecera('Pagos del fiado')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/comunes :: navbar}"></div>
+
+<main class="contenedor">
+
+    <h1>Detalle de la deuda y pagos</h1>
+
+    <p class="subtitulo">
+        Consulta el saldo pendiente y registra los abonos del cliente.
+    </p>
+
+    <!-- Mensajes del sistema -->
+    <div class="aviso" th:if="${mensaje}" th:text="${mensaje}"></div>
+
+    <div class="aviso alerta" th:if="${error}" th:text="${error}"></div>
+
+    <!-- Informacion del fiado -->
+    <section class="tarjeta">
+        <h2>Informacion del fiado</h2>
+
+        <p>
+            <strong>Numero de fiado:</strong>
+            <span th:text="${fiado.idFiado}">1</span>
+        </p>
+
+        <p>
+            <strong>Cliente:</strong>
+            <span th:text="${fiado.cliente.nombres}">Nombres</span>
+            <span th:text="${fiado.cliente.apellidos}">Apellidos</span>
+        </p>
+
+        <p>
+            <strong>Descripcion:</strong>
+            <span th:text="${fiado.descripcion}">Compra</span>
+        </p>
+
+        <p>
+            <strong>Monto inicial:</strong>
+            S/
+            <span th:text="${#numbers.formatDecimal(fiado.montoInicial, 1, 2)}">
+                0.00
+            </span>
+        </p>
+
+        <p>
+            <strong>Saldo pendiente:</strong>
+            S/
+            <span th:text="${#numbers.formatDecimal(fiado.saldoPendiente, 1, 2)}">
+                0.00
+            </span>
+        </p>
+
+        <p>
+            <strong>Estado:</strong>
+            <span th:text="${fiado.estado}">PENDIENTE</span>
+        </p>
+    </section>
+
+    <!-- Formulario para registrar un pago -->
+    <section class="tarjeta">
+        <h2>Registrar pago</h2>
+
+        <p>Ingresa el importe que el cliente está abonando.</p>
+
+        <form th:action="@{/fiados/{idFiado}/pagos/guardar(idFiado=${fiado.idFiado})}"
+              method="post">
+
+            <div class="campo">
+                <label for="monto">Monto del pago (S/)</label>
+
+                <input type="number"
+                       id="monto"
+                       name="monto"
+                       min="0.01"
+                       th:attr="max=${fiado.saldoPendiente}"
+                       step="0.01"
+                       placeholder="0.00"
+                       required
+                       th:disabled="${fiado.saldoPendiente.compareTo(T(java.math.BigDecimal).ZERO) <= 0}">
+            </div>
+
+            <div class="campo">
+                <label for="observacion">Observacion (opcional)</label>
+
+                <input type="text"
+                       id="observacion"
+                       name="observacion"
+                       maxlength="200"
+                       placeholder="Ejemplo: abono en efectivo">
+            </div>
+
+            <div class="acciones">
+                <button type="submit"
+                        class="boton"
+                        th:disabled="${fiado.saldoPendiente.compareTo(T(java.math.BigDecimal).ZERO) <= 0}">
+                    Registrar pago
+                </button>
+
+                <a class="boton" th:href="@{/fiados}">
+                    Volver a fiados
+                </a>
+            </div>
+
+        </form>
+    </section>
+
+    <!-- Historial de pagos -->
+    <h2>Historial de pagos</h2>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID de pago</th>
+                    <th>Fecha</th>
+                    <th>Monto abonado</th>
+                    <th>Observacion</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:if="${#lists.isEmpty(pagos)}">
+                    <td colspan="4">
+                        Este fiado todavia no tiene pagos registrados.
+                    </td>
+                </tr>
+
+                <tr th:each="pago : ${pagos}">
+                    <td th:text="${pago.idPago}">1</td>
+
+                    <td th:text="${pago.fecha}">Fecha</td>
+
+                    <td>
+                        S/
+                        <span th:text="${#numbers.formatDecimal(pago.monto, 1, 2)}">
+                            0.00
+                        </span>
+                    </td>
+
+                    <td th:text="${pago.observacion != null ? pago.observacion : '-'}">
+                        -
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/comunes :: pie}"></div>
+
+</body>
+</html>
